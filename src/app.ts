@@ -1,14 +1,37 @@
 import express from "express";
-import { WebSocketServer } from "ws";
+import cors from "cors";
 import crypto from "crypto";
+import { WebSocketServer } from "ws";
 import * as data from "./data";
-import { ClientSocket, ClientMessage, Message } from "../types";
+import { sleep } from "./utils";
+import { ClientSocket, ClientMessage, Message, Session } from "../types";
 
 const app = express();
 const port = 3001;
 const clients: ClientSocket[] = [];
 
+app.use(cors());
 app.use(express.json());
+
+app.post("/api/login", async (req, res) => {
+    const { username, password } = req.body;
+
+    await sleep(1000);
+
+    if (username === "Jasper Haward" && password === "password") {
+        const user: Session = {
+            user: {
+                id: crypto.randomUUID(),
+                username: "Jasper Haward",
+            },
+            token: crypto.randomUUID(),
+        };
+
+        return res.json(user);
+    }
+
+    res.sendStatus(401);
+});
 
 app.post("/api/conversations/:id/messages", (req, res) => {
     const { id } = req.params;
