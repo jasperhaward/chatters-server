@@ -1,11 +1,10 @@
 {
     "compilerOptions": {
         "strict": true,
+        "module": "ESNext",
+        "moduleResolution": "node",
         "esModuleInterop": true,
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
         "target": "ESNext",
-        "lib": ["ESNext"],
         "allowSyntheticDefaultImports": true,
         "isolatedModules": true,
         "noEmitOnError": true,
