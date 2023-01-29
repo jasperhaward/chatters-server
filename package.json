@@ -1,14 +1,15 @@
 {
   "name": "chatters-server",
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "nodemon",
-    "start": "node dist/app.js",
+    "dev": "nodemon --watch src --watch types --exec ts-node src/index.ts",
+    "start": "node dist/index.js",
     "build": "tsc"
   },
   "devDependencies": {
+    "@fastify/type-provider-typebox": "^2.4.0",
     "@types/cors": "^2.8.13",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/pg": "^8.6.6",
     "@types/ws": "^8.5.3",
     "nodemon": "^2.0.20",
@@ -18,8 +19,11 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.2.0",
+    "@sinclair/typebox": "^0.25.21",
     "dotenv": "^16.0.3",
     "fastify": "^4.11.0",
+    "jsonwebtoken": "^9.0.0",
+    "kysely": "^0.23.4",
     "pg": "^8.8.0",
     "ws": "^8.11.0"
   }

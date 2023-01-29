@@ -1,19 +1,45 @@
-import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import config from "./config";
-import accountsRouter from "./routes/accounts";
-import authRouter from "./routes/auth";
+import { Pool } from "pg";
+import { Kysely, PostgresDialect } from "kysely";
 
-const fastify = Fastify({
-    logger: true,
-});
+import { Config } from "./config";
+import { Database } from "./database";
+import { FastifyTypebox } from "../types";
+import authController from "./controllers/auth.controller";
 
-await fastify.register(cors);
+export default class App {
+    config: Config;
+    fastify: FastifyTypebox;
+    db: Kysely<Database>;
 
-fastify.register(accountsRouter, { prefix: "/api/v1/accounts" });
-fastify.register(authRouter, { prefix: "/api/v1/auth" });
+    constructor(config: Config) {
+        this.config = config;
 
-await fastify.listen({
-    port: Number(config.PORT),
-});
+        this.fastify = Fastify({ logger: true });
+
+        this.db = new Kysely<Database>({
+            dialect: new PostgresDialect({
+                pool: new Pool(this.config.database),
+            }),
+        });
+
+        this.fastify.register(cors);
+
+        this.fastify.register(authController, {
+            prefix: "/api/v1/auth",
+            db: this.db,
+        });
+    }
+
+    async start() {
+        await this.fastify.listen({
+            port: this.config.port,
+        });
+    }
+
+    async stop() {
+        await this.fastify.close();
+        await this.db?.destroy();
+    }
+}
