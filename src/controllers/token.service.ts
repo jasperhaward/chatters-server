@@ -3,6 +3,7 @@ import jwt, { TokenExpiredError } from "jsonwebtoken";
 
 import config from "../config";
 import { Database } from "../database";
+import { insertToken, findTokenById } from "./token.store";
 
 export class InvalidAuthTokenError extends Error {}
 export class MalformedAuthTokenError extends Error {}
@@ -14,11 +15,7 @@ export interface TokenPayload {
 }
 
 export async function generateToken(db: Kysely<Database>, userId: string) {
-    const token = await db
-        .insertInto("user_token")
-        .values({ user_id: userId })
-        .returningAll()
-        .executeTakeFirstOrThrow();
+    const token = await insertToken(db, userId);
 
     const tokenPayload: TokenPayload = {
         userId,
@@ -33,15 +30,7 @@ export async function generateToken(db: Kysely<Database>, userId: string) {
 export async function verifyToken(db: Kysely<Database>, token: string) {
     const tokenPayload = decodeToken(token);
 
-    console.log(tokenPayload);
-
-    const storedToken = await db
-        .selectFrom("user_token as token")
-        .selectAll()
-        .where("token.id", "=", tokenPayload.tokenId)
-        .executeTakeFirst();
-
-    console.log(storedToken);
+    const storedToken = await findTokenById(db, tokenPayload.tokenId);
 
     if (!storedToken || storedToken.user_id !== tokenPayload.userId) {
         throw new InvalidAuthTokenError();

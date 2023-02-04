@@ -3,7 +3,7 @@ import {
     insertUser,
     findUserByUsername,
     UsernameNotUniqueError,
-} from "./user.service";
+} from "./user.store";
 import {
     encryptPassword,
     verifyPassword,
