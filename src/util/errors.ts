@@ -1,10 +1,10 @@
-import { RegisterErrorCode, LoginErrorCode } from "../controllers/auth.errors";
+import { RegisterErrorCode } from "../controllers/auth.errors";
 
-export type ErrorStatusCode = 400 | 401 | 404 | 500;
+type ErrorStatusCode = 400 | 401 | 404 | 500;
 
-export type ErrorCode = RegisterErrorCode | LoginErrorCode;
+type ErrorCode = BadRequestErrorCode | UnauthorisedErrorCode;
 
-export class ControllerError extends Error {
+class ControllerError extends Error {
     readonly status: ErrorStatusCode;
     readonly code: ErrorCode;
 
@@ -18,5 +18,21 @@ export class ControllerError extends Error {
         return {
             error: { code: this.code, message: this.message },
         };
+    }
+}
+
+export type BadRequestErrorCode = RegisterErrorCode;
+
+export class BadRequest extends ControllerError {
+    constructor(code: BadRequestErrorCode, message: string) {
+        super(400, code, message);
+    }
+}
+
+export type UnauthorisedErrorCode = "InvalidCredentials";
+
+export class Unauthorised extends ControllerError {
+    constructor() {
+        super(401, "InvalidCredentials", "Credentials are invalid.");
     }
 }

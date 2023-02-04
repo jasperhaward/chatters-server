@@ -3,5 +3,3 @@ export type RegisterErrorCode =
     | "PasswordsNotMatching"
     | "PasswordTooWeak"
     | "PasswordTooLong";
-
-export type LoginErrorCode = "InvalidCredentials";

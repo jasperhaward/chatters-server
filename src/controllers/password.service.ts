@@ -15,14 +15,10 @@ export function encryptPassword(password: string) {
         throw new PasswordTooLongError();
     }
 
-    const salt = generateSalt();
-    const hash = generatePasswordHash(password, salt);
+    const salt = randomBytes(64).toString("base64");
+    const passwordHash = generatePasswordHash(password, salt);
 
-    return `${salt}:${hash}`;
-}
-
-function generateSalt() {
-    return randomBytes(64).toString("base64");
+    return `${salt}:${passwordHash}`;
 }
 
 function generatePasswordHash(password: string, salt: string) {
@@ -31,8 +27,11 @@ function generatePasswordHash(password: string, salt: string) {
     return passwordHash.toString("hex");
 }
 
-export function verifyPassword(savedPassword: string, passwordAttempt: string) {
-    const [salt, hash] = savedPassword.split(":");
+export function verifyPassword(
+    storedPassword: string,
+    passwordAttempt: string
+) {
+    const [salt, passwordHash] = storedPassword.split(":");
 
-    return hash === generatePasswordHash(passwordAttempt, salt);
+    return passwordHash === generatePasswordHash(passwordAttempt, salt);
 }

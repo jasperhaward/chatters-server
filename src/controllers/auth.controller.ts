@@ -3,14 +3,15 @@ import {
     insertUser,
     findUserByUsername,
     UsernameNotUniqueError,
-} from "./auth.service";
+} from "./user.service";
 import {
     encryptPassword,
     verifyPassword,
     PasswordTooLongError,
     PasswordTooWeakError,
 } from "./password.service";
-import { ControllerError } from "../util/errors";
+import { generateToken, verifyToken } from "./token.service";
+import { BadRequest, Unauthorised } from "../util/errors";
 import { FastifyTypebox, WithDb } from "../../types";
 
 export default async function auth(fastify: FastifyTypebox, options: WithDb) {
@@ -23,8 +24,7 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
             const { username, password, confirmPassword } = request.body;
 
             if (password !== confirmPassword) {
-                throw new ControllerError(
-                    400,
+                throw new BadRequest(
                     "PasswordsNotMatching",
                     "'password' and 'confirmPassword' must be the same"
                 );
@@ -43,20 +43,17 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
                 return user;
             } catch (error) {
                 if (error instanceof UsernameNotUniqueError) {
-                    throw new ControllerError(
-                        400,
+                    throw new BadRequest(
                         "UsernameNotUnique",
                         "'username' must be unique"
                     );
                 } else if (error instanceof PasswordTooWeakError) {
-                    throw new ControllerError(
-                        400,
+                    throw new BadRequest(
                         "PasswordTooWeak",
                         "'password' is too short"
                     );
                 } else if (error instanceof PasswordTooLongError) {
-                    throw new ControllerError(
-                        400,
+                    throw new BadRequest(
                         "PasswordTooLong",
                         "'password' is too long"
                     );
@@ -73,13 +70,17 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
         const user = await findUserByUsername(db, username);
 
         if (!user || !verifyPassword(user.password, password)) {
-            throw new ControllerError(
-                401,
-                "InvalidCredentials",
-                "invalid credentials"
-            );
+            throw new Unauthorised();
         }
 
-        return { user, token: "anystring" };
+        const token = await generateToken(db, user.id);
+
+        return { user, token };
+    });
+
+    fastify.post("/verify", async (request) => {
+        const { token } = request.body as { token: string };
+
+        return await verifyToken(db, token);
     });
 }
