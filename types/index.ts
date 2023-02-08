@@ -1,1 +1,1 @@
-export * from "./FastifyTypebox";
+export * from "./Fastify";

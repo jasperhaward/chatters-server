@@ -11,8 +11,15 @@ export async function insertToken(db: Kysely<Database>, userId: string) {
 
 export async function findTokenById(db: Kysely<Database>, tokenId: string) {
     return await db
-        .selectFrom("user_token as token")
+        .selectFrom("user_token")
         .selectAll()
-        .where("token.id", "=", tokenId)
+        .where("user_token.id", "=", tokenId)
         .executeTakeFirst();
+}
+
+export async function deleteToken(db: Kysely<Database>, tokenId: string) {
+    await db
+        .deleteFrom("user_token")
+        .where("user_token.id", "=", tokenId)
+        .execute();
 }

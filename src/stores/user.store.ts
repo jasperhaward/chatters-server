@@ -1,7 +1,7 @@
 import { Kysely } from "kysely";
 import { DatabaseError } from "pg";
 import { Database, DatabaseErrorCode } from "../database";
-import { InsertableUserRow } from "./user.table";
+import { InsertableUserRow } from "../tables/user.table";
 
 export class UsernameNotUniqueError extends Error {}
 

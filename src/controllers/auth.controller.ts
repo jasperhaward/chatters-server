@@ -3,16 +3,18 @@ import {
     insertUser,
     findUserByUsername,
     UsernameNotUniqueError,
-} from "./user.store";
+} from "../stores/user.store";
 import {
     encryptPassword,
     verifyPassword,
     PasswordTooLongError,
     PasswordTooWeakError,
-} from "./password.service";
-import { generateToken, verifyToken } from "./token.service";
+} from "../services/password.service";
+import { generateToken, validateToken } from "../services/token.service";
 import { BadRequest, Unauthorised } from "../util/errors";
 import { FastifyTypebox, WithDb } from "../../types";
+import authentication from "../hooks/authentication.hook";
+import { deleteToken } from "../stores/token.store";
 
 export default async function auth(fastify: FastifyTypebox, options: WithDb) {
     const { db } = options;
@@ -78,9 +80,15 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
         return { user, token };
     });
 
-    fastify.post("/verify", async (request) => {
-        const { token } = request.body as { token: string };
+    fastify.post(
+        "/logout/:userId",
+        { preHandler: authentication(db) },
+        async (request, reply) => {
+            const { tokenId } = request.token;
 
-        return await verifyToken(db, token);
-    });
+            await deleteToken(db, tokenId);
+
+            reply.code(204).send();
+        }
+    );
 }

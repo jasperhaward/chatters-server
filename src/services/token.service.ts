@@ -1,9 +1,9 @@
 import { Kysely } from "kysely";
-import jwt, { TokenExpiredError } from "jsonwebtoken";
+import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 
 import config from "../config";
 import { Database } from "../database";
-import { insertToken, findTokenById } from "./token.store";
+import { insertToken, findTokenById } from "../stores/token.store";
 
 export class InvalidAuthTokenError extends Error {}
 export class MalformedAuthTokenError extends Error {}
@@ -27,32 +27,40 @@ export async function generateToken(db: Kysely<Database>, userId: string) {
     });
 }
 
-export async function verifyToken(db: Kysely<Database>, token: string) {
-    const tokenPayload = decodeToken(token);
+export async function validateToken(db: Kysely<Database>, token: string) {
+    const payload = verifyToken(token);
 
-    const storedToken = await findTokenById(db, tokenPayload.tokenId);
+    if (validatePayload(payload)) {
+        const storedToken = await findTokenById(db, payload.tokenId);
 
-    if (!storedToken || storedToken.user_id !== tokenPayload.userId) {
+        if (!storedToken || storedToken.user_id !== payload.userId) {
+            throw new InvalidAuthTokenError();
+        }
+
+        return payload;
+    } else {
         throw new InvalidAuthTokenError();
+    }
+}
+
+export function validatePayload(
+    payload: string | JwtPayload
+): payload is TokenPayload {
+    if (
+        !payload ||
+        typeof payload !== "object" ||
+        typeof payload.userId !== "string" ||
+        typeof payload.tokenId !== "string"
+    ) {
+        return false;
     }
 
     return true;
 }
 
-export function decodeToken(token: string): TokenPayload {
+export function verifyToken(token: string) {
     try {
-        const payload = jwt.verify(token, config.authTokenSecret);
-
-        if (
-            !payload ||
-            typeof payload !== "object" ||
-            typeof payload.userId !== "string" ||
-            typeof payload.tokenId !== "string"
-        ) {
-            throw new MalformedAuthTokenError();
-        }
-
-        return payload as TokenPayload;
+        return jwt.verify(token, config.authTokenSecret);
     } catch (error) {
         if (error instanceof TokenExpiredError) {
             throw new ExpiredAuthTokenError();
