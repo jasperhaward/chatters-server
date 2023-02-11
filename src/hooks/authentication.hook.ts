@@ -1,22 +1,17 @@
-import { FastifyRequest } from "fastify";
+import { preHandlerHookHandler } from "fastify";
 import { Kysely } from "kysely";
 import { Database } from "../database";
 import {
     ExpiredAuthTokenError,
     InvalidAuthTokenError,
-    TokenPayload,
     validateToken,
 } from "../services/token.service";
 import { Unauthorised } from "../util/errors";
 
-declare module "fastify" {
-    export interface FastifyRequest {
-        token: TokenPayload;
-    }
-}
-
-export default function authentication(db: Kysely<Database>) {
-    return async (request: FastifyRequest) => {
+export default function authentication(
+    db: Kysely<Database>
+): preHandlerHookHandler {
+    return async (request) => {
         const { authorization } = request.headers;
 
         if (!authorization) {

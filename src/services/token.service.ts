@@ -66,6 +66,6 @@ export function verifyToken(token: string) {
             throw new ExpiredAuthTokenError();
         }
 
-        throw error;
+        throw new InvalidAuthTokenError();
     }
 }
