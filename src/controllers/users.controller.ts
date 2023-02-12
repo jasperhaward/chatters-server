@@ -7,7 +7,7 @@ export default async function users(fastify: FastifyTypebox, options: WithDb) {
     const { db } = options;
 
     fastify.get(
-        "/users/:userId",
+        "/:userId",
         {
             preHandler: authentication(db),
             schema: GetUserSchema,
