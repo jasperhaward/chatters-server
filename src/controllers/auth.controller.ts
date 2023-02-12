@@ -15,12 +15,7 @@ import {
 import { deleteToken } from "../stores/token.store";
 import { BadRequest, Unauthorised } from "../util/errors";
 
-import {
-    RegisterSchema,
-    LoginSchema,
-    LogoutSchema,
-    VerifyUserSchema,
-} from "./auth.schema";
+import { RegisterSchema, LoginSchema } from "./auth.schema";
 
 export default async function auth(fastify: FastifyTypebox, options: WithDb) {
     const { db } = options;
@@ -87,36 +82,12 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
     });
 
     fastify.post(
-        "/logout/:userId",
-        {
-            preHandler: authentication(db),
-            schema: LogoutSchema,
-        },
+        "/logout",
+        { preHandler: authentication(db) },
         async (request, reply) => {
             const { token } = request;
-
-            if (request.params.userId !== token.userId) {
-                throw new Unauthorised();
-            }
 
             await deleteToken(db, token.tokenId);
-
-            reply.code(204).send();
-        }
-    );
-
-    fastify.post(
-        "/verify/:userId",
-        {
-            preHandler: authentication(db),
-            schema: VerifyUserSchema,
-        },
-        async (request, reply) => {
-            const { token } = request;
-
-            if (request.params.userId !== token.userId) {
-                throw new Unauthorised();
-            }
 
             reply.code(204).send();
         }

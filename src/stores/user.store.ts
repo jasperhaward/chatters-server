@@ -37,3 +37,11 @@ export async function findUserByUsername(
         .where("user.username", "=", username)
         .executeTakeFirst();
 }
+
+export async function findUserById(db: Kysely<Database>, id: string) {
+    return await db
+        .selectFrom("user_account as user")
+        .selectAll()
+        .where("user.id", "=", id)
+        .executeTakeFirst();
+}

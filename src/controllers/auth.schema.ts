@@ -31,23 +31,3 @@ export const LoginSchema = {
         "2xx": Session,
     },
 } satisfies FastifySchema;
-
-// Logout Schema
-
-export const LogoutParameters = Type.Object({
-    userId: Type.String(),
-});
-
-export const LogoutSchema = {
-    params: LogoutParameters,
-} satisfies FastifySchema;
-
-// Verify schema
-
-export const VerifyUserParameters = Type.Object({
-    userId: Type.String(),
-});
-
-export const VerifyUserSchema = {
-    params: VerifyUserParameters,
-} satisfies FastifySchema;

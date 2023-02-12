@@ -7,6 +7,7 @@ import { Config } from "./config";
 import { Database } from "./database";
 import { FastifyTypebox } from "../types";
 import authController from "./controllers/auth.controller";
+import usersController from "./controllers/users.controller";
 
 export default class App {
     config: Config;
@@ -28,6 +29,10 @@ export default class App {
 
         this.fastify.register(authController, {
             prefix: "/api/v1/auth",
+            db: this.db,
+        });
+        this.fastify.register(usersController, {
+            prefix: "/api/v1/users",
             db: this.db,
         });
     }
