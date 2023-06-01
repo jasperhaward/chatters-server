@@ -14,9 +14,9 @@ export async function findTokenByTokenId(
   tokenId: string
 ) {
   return await db
-    .selectFrom("user_token")
+    .selectFrom("user_token as t")
     .selectAll()
-    .where("user_token.token_id", "=", tokenId)
+    .where("t.token_id", "=", tokenId)
     .executeTakeFirst();
 }
 
@@ -25,7 +25,7 @@ export async function deleteTokenByTokenId(
   tokenId: string
 ) {
   await db
-    .deleteFrom("user_token")
-    .where("user_token.token_id", "=", tokenId)
+    .deleteFrom("user_token as t")
+    .where("t.token_id", "=", tokenId)
     .execute();
 }

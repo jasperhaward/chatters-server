@@ -3,7 +3,7 @@ import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 
 import config from "../config";
 import { Database } from "../database";
-import { insertToken, findTokenByTokenId } from "../stores/token.store";
+import { insertToken, findTokenByTokenId } from "../stores";
 
 export class InvalidAuthTokenError extends Error {}
 export class MalformedAuthTokenError extends Error {}

@@ -6,6 +6,7 @@ import { Kysely, PostgresDialect } from "kysely";
 import { Config } from "./config";
 import { Database } from "./database";
 import { FastifyTypebox } from "./types";
+
 import authController from "./controllers/auth.controller";
 import conversationsController from "./controllers/conversations.controller";
 

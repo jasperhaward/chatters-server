@@ -6,7 +6,7 @@ import {
   ExpiredAuthTokenError,
   InvalidAuthTokenError,
   validateToken,
-} from "../services/token.service";
+} from "../services";
 import { Unauthorised } from "../util";
 
 export default function authentication(

@@ -1,12 +1,14 @@
 import { FastifyTypebox, WithDb } from "../types";
 import authentication from "../hooks/authentication.hook";
-import { GetConversationsSchema } from "./conversations.schema";
+
 import { TConversation } from "../schema";
 import { toUserSchmema, toMessageSchmema } from "../util";
-
-import { findConversationsByUserId } from "../stores/conversations.store";
-import { findRecipientsByConversationId } from "../stores/recipients.store";
-import { findMessagesByConversationId } from "../stores/messages.store";
+import {
+  findConversationsByUserId,
+  findRecipientsByConversationId,
+  findMessagesByConversationId,
+} from "../stores";
+import { GetConversationsSchema } from "./conversations.schema";
 
 export default async function auth(fastify: FastifyTypebox, options: WithDb) {
   const { db } = options;

@@ -1,20 +1,20 @@
 import { FastifyTypebox, WithDb } from "../types";
 import authentication from "../hooks/authentication.hook";
+
 import {
   encryptPassword,
   verifyPassword,
   PasswordTooLongError,
   PasswordTooWeakError,
-} from "../services/password.service";
-import { generateToken } from "../services/token.service";
+  generateToken,
+} from "../services";
 import {
   insertUser,
   findUserByUsername,
   UsernameNotUniqueError,
-} from "../stores/user.store";
-import { deleteTokenByTokenId } from "../stores/token.store";
-import { BadRequest, Unauthorised } from "../util";
-
+  deleteTokenByTokenId,
+} from "../stores";
+import { BadRequest, Unauthorised, toUserSchmema } from "../util";
 import { RegisterSchema, LoginSchema } from "./auth.schema";
 
 export default async function auth(fastify: FastifyTypebox, options: WithDb) {
@@ -43,7 +43,7 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
 
         reply.code(201);
 
-        return user;
+        return toUserSchmema(user);
       } catch (error) {
         if (error instanceof UsernameNotUniqueError) {
           throw new BadRequest(
@@ -73,10 +73,7 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
     const token = await generateToken(db, user.user_id);
 
     return {
-      user: {
-        id: user.user_id,
-        username: user.username,
-      },
+      user: toUserSchmema(user),
       token,
     };
   });
