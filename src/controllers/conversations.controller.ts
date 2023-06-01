@@ -10,7 +10,10 @@ import {
 } from "../stores";
 import { GetConversationsSchema } from "./conversations.schema";
 
-export default async function auth(fastify: FastifyTypebox, options: WithDb) {
+export default async function conversations(
+  fastify: FastifyTypebox,
+  options: WithDb
+) {
   const { db } = options;
 
   fastify.get(
