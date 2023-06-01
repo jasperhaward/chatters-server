@@ -1,15 +1,15 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "module": "CommonJS",
-        "moduleResolution": "node",
-        "target": "ESNext",
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "isolatedModules": true,
-        "noEmitOnError": true,
-        "rootDir": ".",
-        "outDir": "dist",
-    },
-    "include": ["src", "types"],
+  "compilerOptions": {
+    "strict": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "noEmitOnError": true,
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": ["src"]
 }

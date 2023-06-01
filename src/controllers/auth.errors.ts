@@ -1,5 +1,5 @@
 export type RegisterErrorCode =
-    | "UsernameNotUnique"
-    | "PasswordsNotMatching"
-    | "PasswordTooWeak"
-    | "PasswordTooLong";
+  | "UsernameNotUnique"
+  | "PasswordsNotMatching"
+  | "PasswordTooWeak"
+  | "PasswordTooLong";

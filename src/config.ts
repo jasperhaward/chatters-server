@@ -1,32 +1,25 @@
 import "dotenv/config";
 import { PoolConfig } from "pg";
+import { parseEnv } from "./util";
 
 export interface Config {
-    readonly port: number;
-    readonly authTokenSecret: string;
-    readonly authTokenExpiryDuration: number;
-    readonly database: PoolConfig;
+  readonly port: number;
+  readonly authTokenSecret: string;
+  readonly authTokenExpiryDuration: number;
+  readonly database: PoolConfig;
 }
 
 const config: Config = {
-    port: parseInt(env("PORT")),
-    authTokenSecret: env("AUTH_TOKEN_SECRET"),
-    authTokenExpiryDuration: parseInt(env("AUTH_TOKEN_EXIRY_DURATION")),
-    database: {
-        host: env("POSTGRES_HOST"),
-        port: parseInt(env("POSTGRES_PORT")),
-        user: env("POSTGRES_USER"),
-        password: env("POSTGRES_PASSWORD"),
-        database: env("POSTGRES_DATABASE"),
-    },
+  port: parseEnv("PORT", "number"),
+  authTokenSecret: parseEnv("AUTH_TOKEN_SECRET", "string"),
+  authTokenExpiryDuration: parseEnv("AUTH_TOKEN_EXIRY_DURATION", "number"),
+  database: {
+    host: parseEnv("POSTGRES_HOST", "string"),
+    port: parseEnv("POSTGRES_PORT", "number"),
+    user: parseEnv("POSTGRES_USER", "string"),
+    password: parseEnv("POSTGRES_PASSWORD", "string"),
+    database: parseEnv("POSTGRES_DATABASE", "string"),
+  },
 };
-
-function env(name: string) {
-    if (!process.env[name]) {
-        throw new Error(`Environment variable '${name}' not found`);
-    }
-
-    return process.env[name]!;
-}
 
 export default config;

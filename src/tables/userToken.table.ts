@@ -1,8 +1,8 @@
 import { GeneratedAlways, Insertable, Selectable, Updateable } from "kysely";
 
 export interface TokenTable {
-    id: GeneratedAlways<string>;
-    user_id: string;
+  token_id: GeneratedAlways<string>;
+  user_id: string;
 }
 
 export type TokenRow = Selectable<TokenTable>;

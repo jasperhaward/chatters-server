@@ -1,9 +1,9 @@
 import { GeneratedAlways, Insertable, Selectable, Updateable } from "kysely";
 
 export interface UserTable {
-    id: GeneratedAlways<string>;
-    username: string;
-    password: string;
+  user_id: GeneratedAlways<string>;
+  username: string;
+  password: string;
 }
 
 export type UserRow = Selectable<UserTable>;
