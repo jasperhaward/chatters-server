@@ -6,6 +6,21 @@ import { InsertableUserRow } from "../tables";
 
 export class UsernameNotUniqueError extends Error {}
 
+export async function findUsers(db: Kysely<Database>) {
+  return await db.selectFrom("user_account").selectAll().execute();
+}
+
+export async function findUserByUsername(
+  db: Kysely<Database>,
+  username: string
+) {
+  return await db
+    .selectFrom("user_account")
+    .selectAll()
+    .where("username", "=", username)
+    .executeTakeFirst();
+}
+
 export async function insertUser(
   db: Kysely<Database>,
   values: InsertableUserRow
@@ -26,15 +41,4 @@ export async function insertUser(
 
     throw error;
   }
-}
-
-export async function findUserByUsername(
-  db: Kysely<Database>,
-  username: string
-) {
-  return await db
-    .selectFrom("user_account as u")
-    .selectAll()
-    .where("u.username", "=", username)
-    .executeTakeFirst();
 }

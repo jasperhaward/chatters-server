@@ -9,6 +9,7 @@ import { FastifyTypebox } from "./types";
 
 import authController from "./controllers/auth.controller";
 import conversationsController from "./controllers/conversations.controller";
+import contactsController from "./controllers/contacts.controller";
 
 export default class App {
   config: Config;
@@ -34,6 +35,10 @@ export default class App {
     });
     this.fastify.register(conversationsController, {
       prefix: "/api/v1/conversations",
+      db: this.db,
+    });
+    this.fastify.register(contactsController, {
+      prefix: "/api/v1/contacts",
       db: this.db,
     });
   }
