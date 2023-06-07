@@ -14,9 +14,9 @@ export async function findRecipientsByConversationId(
 ): Promise<RecipientRowWithUsername[]> {
   return await db
     .selectFrom("conversation_recipient as r")
-    .innerJoin("user_account", "user_account.user_id", "r.user_id")
+    .innerJoin("user_account as u", "u.user_id", "r.user_id")
     .selectAll("r")
-    .select("user_account.username")
+    .select("u.username")
     .where("r.conversation_id", "=", conversationId)
     .where("r.user_id", "!=", userId)
     .execute();
@@ -61,9 +61,9 @@ export async function insertRecipients(
         .returningAll()
     )
     .selectFrom("r")
-    .innerJoin("user_account", "user_account.user_id", "r.user_id")
+    .innerJoin("user_account as u", "u.user_id", "r.user_id")
     .selectAll("r")
-    .select("user_account.username")
+    .select("u.username")
     .execute()
     .catch((error) => {
       if (

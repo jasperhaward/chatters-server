@@ -93,8 +93,8 @@ export async function insertConversation(
         .returningAll()
     )
     .selectFrom("c")
-    .innerJoin("user_account", "user_account.user_id", "c.created_by")
+    .innerJoin("user_account as u", "u.user_id", "c.created_by")
     .selectAll("c")
-    .select("user_account.username as created_by_username")
+    .select("u.username as created_by_username")
     .executeTakeFirstOrThrow();
 }

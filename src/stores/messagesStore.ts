@@ -8,9 +8,9 @@ export async function findMessagesByConversationId(
 ): Promise<MessageRowWithCreatedBy[]> {
   return await db
     .selectFrom("conversation_message as m")
-    .innerJoin("user_account", "user_account.user_id", "m.created_by")
+    .innerJoin("user_account as u", "u.user_id", "m.created_by")
     .selectAll("m")
-    .select("user_account.username as created_by_username")
+    .select("u.username as created_by_username")
     .where("m.conversation_id", "=", conversationId)
     .orderBy("m.created_at", "desc")
     .execute();
