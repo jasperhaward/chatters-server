@@ -7,9 +7,9 @@ import { Config } from "./config";
 import { Database } from "./database";
 import { FastifyTypebox } from "./types";
 
-import authController from "./controllers/auth.controller";
-import conversationsController from "./controllers/conversations.controller";
-import contactsController from "./controllers/contacts.controller";
+import authController from "./controllers/authController";
+import conversationsController from "./controllers/conversationsController";
+import contactsController from "./controllers/contactsController";
 
 export default class App {
   config: Config;

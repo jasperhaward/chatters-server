@@ -14,9 +14,9 @@ export async function findTokenByTokenId(
   tokenId: string
 ) {
   return await db
-    .selectFrom("user_token as t")
+    .selectFrom("user_token")
     .selectAll()
-    .where("t.token_id", "=", tokenId)
+    .where("token_id", "=", tokenId)
     .executeTakeFirst();
 }
 
@@ -24,8 +24,9 @@ export async function deleteTokenByTokenId(
   db: Kysely<Database>,
   tokenId: string
 ) {
+  // prettier-ignore
   await db
-    .deleteFrom("user_token as t")
-    .where("t.token_id", "=", tokenId)
+    .deleteFrom("user_token")
+    .where("token_id", "=", tokenId)
     .execute();
 }

@@ -8,12 +8,17 @@ export type EnvVariableTypeMap<T> = T extends "string"
 
 export function parseEnv<T extends EnvVariableType>(
   name: string,
-  type: T
+  type: T,
+  defaultValue?: EnvVariableTypeMap<T>
 ): EnvVariableTypeMap<T> {
   const value = process.env[name];
 
   if (!value) {
-    throw new Error(`Environment variable '${name}' is required`);
+    if (defaultValue) {
+      return defaultValue;
+    } else {
+      throw new Error(`Environment variable '${name}' is required`);
+    }
   }
 
   switch (type) {

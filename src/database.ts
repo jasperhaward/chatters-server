@@ -2,8 +2,8 @@ import {
   UserTable,
   TokenTable,
   ConversationTable,
-  MessageTable,
   RecipientTable,
+  MessageTable,
 } from "./tables";
 
 export interface Database {
@@ -16,5 +16,7 @@ export interface Database {
 
 /** See https://www.postgresql.org/docs/10/errcodes-appendix.html */
 export enum DatabaseErrorCode {
+  InvalidUUID = "22P02",
+  ForeignKeyViolation = "23503",
   UniqueViolation = "23505",
 }

@@ -10,6 +10,7 @@ export class MalformedAuthTokenError extends Error {}
 export class ExpiredAuthTokenError extends Error {}
 
 export interface TokenPayload {
+  createdAt: string;
   userId: string;
   tokenId: string;
 }
@@ -18,6 +19,7 @@ export async function generateToken(db: Kysely<Database>, userId: string) {
   const token = await insertToken(db, userId);
 
   const tokenPayload: TokenPayload = {
+    createdAt: token.created_at,
     userId,
     tokenId: token.token_id,
   };
@@ -49,6 +51,7 @@ export function isValidTokenPayload(
   if (
     !payload ||
     typeof payload !== "object" ||
+    typeof payload.createdAt !== "string" ||
     typeof payload.userId !== "string" ||
     typeof payload.tokenId !== "string"
   ) {

@@ -1,5 +1,5 @@
-import { FastifyTypebox, WithDb } from "../types";
-import authentication from "../hooks/authentication.hook";
+import { FastifyTypebox, ControllerOptions } from "../types";
+import authentication from "../hooks/authentication";
 
 import {
   encryptPassword,
@@ -14,10 +14,13 @@ import {
   UsernameNotUniqueError,
   deleteTokenByTokenId,
 } from "../stores";
-import { BadRequest, Unauthorised, toUserSchmema } from "../util";
-import { RegisterSchema, LoginSchema } from "./auth.schema";
+import { BadRequestError, UnauthorisedError, toUserSchema } from "../util";
+import { RegisterSchema, LoginSchema } from "./authSchema";
 
-export default async function auth(fastify: FastifyTypebox, options: WithDb) {
+export default async function auth(
+  fastify: FastifyTypebox,
+  options: ControllerOptions
+) {
   const { db } = options;
 
   fastify.post(
@@ -27,7 +30,7 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
       const { username, password, confirmPassword } = request.body;
 
       if (password !== confirmPassword) {
-        throw new BadRequest(
+        throw new BadRequestError(
           "PasswordsNotMatching",
           "'password' and 'confirmPassword' must be the same"
         );
@@ -43,17 +46,23 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
 
         reply.code(201);
 
-        return toUserSchmema(user);
+        return toUserSchema(user);
       } catch (error) {
         if (error instanceof UsernameNotUniqueError) {
-          throw new BadRequest(
+          throw new BadRequestError(
             "UsernameNotUnique",
             "'username' must be unique"
           );
         } else if (error instanceof PasswordTooWeakError) {
-          throw new BadRequest("PasswordTooWeak", "'password' is too short");
+          throw new BadRequestError(
+            "PasswordTooWeak",
+            "'password' is too short"
+          );
         } else if (error instanceof PasswordTooLongError) {
-          throw new BadRequest("PasswordTooLong", "'password' is too long");
+          throw new BadRequestError(
+            "PasswordTooLong",
+            "'password' is too long"
+          );
         }
 
         throw error;
@@ -67,13 +76,13 @@ export default async function auth(fastify: FastifyTypebox, options: WithDb) {
     const user = await findUserByUsername(db, username);
 
     if (!user || !verifyPassword(user.password, password)) {
-      throw new Unauthorised();
+      throw new UnauthorisedError();
     }
 
     const token = await generateToken(db, user.user_id);
 
     return {
-      user: toUserSchmema(user),
+      user: toUserSchema(user),
       token,
     };
   });

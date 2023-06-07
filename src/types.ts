@@ -8,8 +8,8 @@ import {
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Kysely } from "kysely";
 
-import { Database } from "../src/database";
-import { TokenPayload } from "../src/services";
+import { Database } from "./database";
+import { TokenPayload } from "./services";
 
 declare module "fastify" {
   export interface FastifyRequest {
@@ -25,6 +25,10 @@ export type FastifyTypebox = FastifyInstance<
   TypeBoxTypeProvider
 >;
 
-export interface WithDb {
+export interface ControllerOptions {
   db: Kysely<Database>;
 }
+
+export type WithCreatedBy<T> = T & {
+  created_by_username: string;
+};

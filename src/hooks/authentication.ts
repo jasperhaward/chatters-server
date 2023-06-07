@@ -7,7 +7,7 @@ import {
   InvalidAuthTokenError,
   validateToken,
 } from "../services";
-import { Unauthorised } from "../util";
+import { UnauthorisedError } from "../util";
 
 export default function authentication(
   db: Kysely<Database>
@@ -16,7 +16,7 @@ export default function authentication(
     const { authorization } = request.headers;
 
     if (!authorization) {
-      throw new Unauthorised();
+      throw new UnauthorisedError();
     }
 
     const token = authorization.substring("Bearer ".length);
@@ -28,7 +28,7 @@ export default function authentication(
         error instanceof InvalidAuthTokenError ||
         error instanceof ExpiredAuthTokenError
       ) {
-        throw new Unauthorised();
+        throw new UnauthorisedError();
       }
 
       throw error;
