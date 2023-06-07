@@ -19,6 +19,7 @@ export async function findRecipientsByConversationId(
     .select("u.username")
     .where("r.conversation_id", "=", conversationId)
     .where("r.user_id", "!=", userId)
+    .orderBy("r.created_at")
     .execute();
 }
 
