@@ -1,6 +1,10 @@
 import { Kysely } from "kysely";
-import { Database } from "../database";
+
+import { isDatabaseErrorWithCode } from "../util";
+import { Database, DatabaseErrorCode } from "../database";
 import { MessageRowWithCreatedBy } from "../tables";
+
+export class MessageLengthExceededError extends Error {}
 
 export async function findMessagesByConversationId(
   db: Kysely<Database>,
@@ -25,14 +29,28 @@ export interface InsertMessageParams {
 export async function insertMessage(
   db: Kysely<Database>,
   params: InsertMessageParams
-) {
+): Promise<MessageRowWithCreatedBy> {
   return await db
-    .insertInto("conversation_message")
-    .values({
-      conversation_id: params.conversationId,
-      created_by: params.createdBy,
-      content: params.content,
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow();
+    .with("m", (db) =>
+      db
+        .insertInto("conversation_message")
+        .values({
+          conversation_id: params.conversationId,
+          created_by: params.createdBy,
+          content: params.content,
+        })
+        .returningAll()
+    )
+    .selectFrom("m")
+    .innerJoin("user_account as u", "u.user_id", "m.created_by")
+    .selectAll("m")
+    .select("u.username as created_by_username")
+    .executeTakeFirstOrThrow()
+    .catch((error) => {
+      if (isDatabaseErrorWithCode(error, DatabaseErrorCode.ValueTooLong)) {
+        throw new MessageLengthExceededError();
+      }
+
+      throw error;
+    });
 }

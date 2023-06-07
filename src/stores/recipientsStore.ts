@@ -22,6 +22,19 @@ export async function findRecipientsByConversationId(
     .execute();
 }
 
+export async function isRecipientInConversation(
+  db: Kysely<Database>,
+  recipientId: string,
+  conversationId: string
+) {
+  return !!(await db
+    .selectFrom("conversation_recipient")
+    .selectAll()
+    .where("conversation_id", "=", conversationId)
+    .where("user_id", "=", recipientId)
+    .executeTakeFirst());
+}
+
 export async function findConversationsByRecipientIds(
   db: Kysely<Database>,
   recipientIds: string[]
@@ -67,11 +80,7 @@ export async function insertRecipients(
     .execute()
     .catch((error) => {
       if (
-        isDatabaseErrorWithCode(
-          error,
-          DatabaseErrorCode.ForeignKeyViolation,
-          DatabaseErrorCode.InvalidUUID
-        )
+        isDatabaseErrorWithCode(error, DatabaseErrorCode.ForeignKeyViolation)
       ) {
         throw new RecipientNotFoundError();
       }

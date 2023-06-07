@@ -1,7 +1,7 @@
 import { Type, Static } from "@sinclair/typebox";
 
 export const User = Type.Object({
-  id: Type.String(),
+  id: Type.String({ format: "uuid" }),
   username: Type.String(),
 });
 

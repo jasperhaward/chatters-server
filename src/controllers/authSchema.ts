@@ -3,26 +3,22 @@ import { Type } from "@sinclair/typebox";
 
 import { User, Session } from "../schema";
 
-export const RegisterParameters = Type.Object({
-  username: Type.String(),
-  password: Type.String(),
-  confirmPassword: Type.String(),
-});
-
 export const RegisterSchema = {
-  body: RegisterParameters,
+  body: Type.Object({
+    username: Type.String(),
+    password: Type.String(),
+    confirmPassword: Type.String(),
+  }),
   response: {
     "2xx": User,
   },
 } satisfies FastifySchema;
 
-export const LoginParameters = Type.Object({
-  username: Type.String(),
-  password: Type.String(),
-});
-
 export const LoginSchema = {
-  body: LoginParameters,
+  body: Type.Object({
+    username: Type.String(),
+    password: Type.String(),
+  }),
   response: {
     "2xx": Session,
   },

@@ -7,18 +7,23 @@ import {
   BadRequestError,
   removeDuplicates,
   toConversationSchema,
+  toMessageSchema,
 } from "../util";
 import {
   findConversationsByUserId,
   insertConversation,
   RecipientNotFoundError,
   findRecipientsByConversationId,
+  isRecipientInConversation,
   insertRecipients,
   findMessagesByConversationId,
+  MessageLengthExceededError,
+  insertMessage,
 } from "../stores";
 import {
   GetConversationsSchema,
   CreateConversationsSchema,
+  CreateConversationMessageSchema,
 } from "./conversationsSchema";
 
 export default async function conversations(
@@ -116,6 +121,51 @@ export default async function conversations(
         });
 
       return conversation;
+    }
+  );
+
+  fastify.post(
+    "/:conversationId/messages",
+    {
+      preHandler: authentication(db),
+      schema: CreateConversationMessageSchema,
+    },
+    async (request) => {
+      const { conversationId } = request.params;
+      const { createdBy, content } = request.body;
+
+      const trimmedContent = content.trim();
+
+      if (trimmedContent === "") {
+        throw new BadRequestError(
+          "MinimumLengthRequired",
+          "message 'content' cannot be empty or whitespace"
+        );
+      }
+
+      if (!(await isRecipientInConversation(db, createdBy, conversationId))) {
+        throw new BadRequestError(
+          "CreatedByNotConversationRecipient",
+          "'createdBy' & 'conversationId' must exist and 'createdBy' must be recipient of conversation"
+        );
+      }
+
+      const message = await insertMessage(db, {
+        conversationId,
+        createdBy,
+        content: trimmedContent,
+      }).catch((error) => {
+        if (error instanceof MessageLengthExceededError) {
+          throw new BadRequestError(
+            "MaximumLengthExceeded",
+            "message 'content' too long"
+          );
+        }
+
+        throw error;
+      });
+
+      return toMessageSchema(message);
     }
   );
 }

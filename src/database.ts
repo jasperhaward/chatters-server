@@ -19,4 +19,5 @@ export enum DatabaseErrorCode {
   InvalidUUID = "22P02",
   ForeignKeyViolation = "23503",
   UniqueViolation = "23505",
+  ValueTooLong = "22001",
 }

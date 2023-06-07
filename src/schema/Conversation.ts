@@ -3,8 +3,8 @@ import { User } from "./User";
 import { Message } from "./Message";
 
 export const Conversation = Type.Object({
-  id: Type.String(),
-  createdAt: Type.String(),
+  id: Type.String({ format: "uuid" }),
+  createdAt: Type.String({ format: "date-time" }),
   createdBy: User,
   title: Type.Union([Type.String(), Type.Null()]),
   recipients: Type.Array(User),

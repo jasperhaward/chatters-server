@@ -1,5 +1,8 @@
 import { RegisterErrorCode } from "../controllers/authErrors";
-import { ConversationErrorCode } from "../controllers/conversationsErrors";
+import {
+  CreateConversationsErrorCode,
+  CreateConversationMessageErrorCode,
+} from "../controllers/conversationsErrors";
 
 type ErrorStatusCode = 400 | 401 | 404 | 500;
 
@@ -7,7 +10,8 @@ type UnauthorisedErrorCode = "InvalidCredentials";
 
 type ErrorCode =
   | RegisterErrorCode
-  | ConversationErrorCode
+  | CreateConversationsErrorCode
+  | CreateConversationMessageErrorCode
   | UnauthorisedErrorCode;
 
 class ControllerError extends Error {
