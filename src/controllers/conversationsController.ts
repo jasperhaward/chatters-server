@@ -98,11 +98,11 @@ export default async function conversations(
             recipientIds: [userId, ...sanitisedRecipientIds],
           });
 
-          const recipientsWithoutUser = recipients.filter((recipient) => {
-            return recipient.user_id !== userId;
-          });
-
-          return toConversationSchema(conversation, recipientsWithoutUser, []);
+          return toConversationSchema(
+            conversation,
+            recipients.filter((recipient) => recipient.user_id !== userId), // remove current user
+            []
+          );
         })
         .catch((error) => {
           if (error instanceof RecipientNotFoundError) {

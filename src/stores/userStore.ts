@@ -1,5 +1,4 @@
 import { Insertable, Kysely } from "kysely";
-import { DatabaseError } from "pg";
 
 import { Database, DatabaseErrorCode } from "../database";
 import { UserTable } from "../tables";
