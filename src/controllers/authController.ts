@@ -95,7 +95,7 @@ export default async function auth(
 
       await deleteTokenByTokenId(db, token.tokenId);
 
-      return reply.code(204);
+      reply.code(204);
     }
   );
 }

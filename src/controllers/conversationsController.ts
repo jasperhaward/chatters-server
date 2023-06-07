@@ -20,12 +20,14 @@ import {
   findMessagesByConversationId,
   MessageLengthExceededError,
   insertMessage,
+  deleteRecipient,
 } from "../stores";
 import {
   GetConversationsSchema,
   CreateConversationsSchema,
   CreateConversationMessageSchema,
   CreateConversationRecipientSchema,
+  DeleteConversationRecipientSchema,
 } from "./conversationsSchema";
 
 export default async function conversations(
@@ -186,7 +188,7 @@ export default async function conversations(
       if (await isRecipientInConversation(db, recipientId, conversationId)) {
         throw new BadRequestError(
           "RecipientAlreadyConversationMember",
-          "'recipientId' is already a recipient of conversation"
+          "'recipientId' & 'conversationId' must exist and 'recipientId' must not be recipient of conversation"
         );
       }
 
@@ -207,6 +209,31 @@ export default async function conversations(
       });
 
       return toUserSchema(recipient);
+    }
+  );
+
+  fastify.delete(
+    "/:conversationId/recipients",
+    {
+      preHandler: authentication(db),
+      schema: DeleteConversationRecipientSchema,
+    },
+    async (request, reply) => {
+      const { conversationId } = request.params;
+      const { recipientId } = request.body;
+
+      if (!(await isRecipientInConversation(db, recipientId, conversationId))) {
+        throw new BadRequestError(
+          "RecipientNotConversationMember",
+          "'recipientId' & 'conversationId' must exist and 'recipientId' must be recipient of conversation"
+        );
+      }
+
+      const params = { conversationId, recipientId };
+
+      await deleteRecipient(db, params);
+
+      reply.code(204);
     }
   );
 }

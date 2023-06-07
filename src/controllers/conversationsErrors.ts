@@ -8,6 +8,9 @@ export type CreateConversationMessageErrorCode =
   | "MaximumLengthExceeded"
   | "CreatedByNotConversationRecipient";
 
-export type CreateConversatioRecipientErrorCode =
+export type CreateConversationRecipientErrorCode =
   | "RecipientAlreadyConversationMember"
   | "RecipientNotFound";
+
+export type DeleteConversationRecipientErrorCode =
+  | "RecipientNotConversationMember";

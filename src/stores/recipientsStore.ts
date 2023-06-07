@@ -88,3 +88,21 @@ export async function insertRecipients(
       throw error;
     });
 }
+
+export interface DeleteRecipientParams {
+  conversationId: string;
+  recipientId: string;
+}
+
+export async function deleteRecipient(
+  db: Kysely<Database>,
+  params: DeleteRecipientParams
+) {
+  const { conversationId, recipientId } = params;
+
+  return await db
+    .deleteFrom("conversation_recipient")
+    .where("conversation_id", "=", conversationId)
+    .where("user_id", "=", recipientId)
+    .execute();
+}

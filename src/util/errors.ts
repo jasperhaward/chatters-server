@@ -2,7 +2,8 @@ import { RegisterErrorCode } from "../controllers/authErrors";
 import {
   CreateConversationsErrorCode,
   CreateConversationMessageErrorCode,
-  CreateConversatioRecipientErrorCode,
+  CreateConversationRecipientErrorCode,
+  DeleteConversationRecipientErrorCode,
 } from "../controllers/conversationsErrors";
 
 type ErrorStatusCode = 400 | 401 | 404 | 500;
@@ -13,7 +14,8 @@ type ErrorCode =
   | RegisterErrorCode
   | CreateConversationsErrorCode
   | CreateConversationMessageErrorCode
-  | CreateConversatioRecipientErrorCode
+  | CreateConversationRecipientErrorCode
+  | DeleteConversationRecipientErrorCode
   | UnauthorisedErrorCode;
 
 class ControllerError extends Error {
