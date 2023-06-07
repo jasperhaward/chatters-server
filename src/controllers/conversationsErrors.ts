@@ -7,3 +7,7 @@ export type CreateConversationMessageErrorCode =
   | "MinimumLengthRequired"
   | "MaximumLengthExceeded"
   | "CreatedByNotConversationRecipient";
+
+export type CreateConversatioRecipientErrorCode =
+  | "RecipientAlreadyConversationMember"
+  | "RecipientNotFound";

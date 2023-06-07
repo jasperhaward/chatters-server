@@ -1,7 +1,7 @@
 import { FastifySchema } from "fastify";
 import { Type } from "@sinclair/typebox";
 
-import { Conversation, Message } from "../schema";
+import { Conversation, Message, User } from "../schema";
 
 export const GetConversationsSchema = {
   response: {
@@ -29,5 +29,17 @@ export const CreateConversationMessageSchema = {
   }),
   response: {
     "2xx": Message,
+  },
+} satisfies FastifySchema;
+
+export const CreateConversationRecipientSchema = {
+  params: Type.Object({
+    conversationId: Type.String({ format: "uuid" }),
+  }),
+  body: Type.Object({
+    recipientId: Type.String({ format: "uuid" }),
+  }),
+  response: {
+    "2xx": User,
   },
 } satisfies FastifySchema;

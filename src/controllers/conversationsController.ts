@@ -8,6 +8,7 @@ import {
   removeDuplicates,
   toConversationSchema,
   toMessageSchema,
+  toUserSchema,
 } from "../util";
 import {
   findConversationsByUserId,
@@ -24,6 +25,7 @@ import {
   GetConversationsSchema,
   CreateConversationsSchema,
   CreateConversationMessageSchema,
+  CreateConversationRecipientSchema,
 } from "./conversationsSchema";
 
 export default async function conversations(
@@ -150,11 +152,13 @@ export default async function conversations(
         );
       }
 
-      const message = await insertMessage(db, {
+      const params = {
         conversationId,
         createdBy,
         content: trimmedContent,
-      }).catch((error) => {
+      };
+
+      const message = await insertMessage(db, params).catch((error) => {
         if (error instanceof MessageLengthExceededError) {
           throw new BadRequestError(
             "MaximumLengthExceeded",
@@ -166,6 +170,43 @@ export default async function conversations(
       });
 
       return toMessageSchema(message);
+    }
+  );
+
+  fastify.post(
+    "/:conversationId/recipients",
+    {
+      preHandler: authentication(db),
+      schema: CreateConversationRecipientSchema,
+    },
+    async (request) => {
+      const { conversationId } = request.params;
+      const { recipientId } = request.body;
+
+      if (await isRecipientInConversation(db, recipientId, conversationId)) {
+        throw new BadRequestError(
+          "RecipientAlreadyConversationMember",
+          "'recipientId' is already a recipient of conversation"
+        );
+      }
+
+      const params = {
+        conversationId,
+        recipientIds: [recipientId],
+      };
+
+      const [recipient] = await insertRecipients(db, params).catch((error) => {
+        if (error instanceof RecipientNotFoundError) {
+          throw new BadRequestError(
+            "RecipientNotFound",
+            "recipient of 'recipientId' not found"
+          );
+        }
+
+        throw error;
+      });
+
+      return toUserSchema(recipient);
     }
   );
 }
