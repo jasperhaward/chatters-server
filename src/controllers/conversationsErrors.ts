@@ -1,4 +1,4 @@
-export type CreateConversationsErrorCode =
+export type CreateConversationErrorCode =
   | "MinimumRecipientsRequired"
   | "MaximumRecipientsExceeded"
   | "RecipientNotFound";

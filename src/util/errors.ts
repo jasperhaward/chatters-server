@@ -1,6 +1,6 @@
 import { RegisterErrorCode } from "../controllers/authErrors";
 import {
-  CreateConversationsErrorCode,
+  CreateConversationErrorCode,
   CreateConversationMessageErrorCode,
   CreateConversationRecipientErrorCode,
   DeleteConversationRecipientErrorCode,
@@ -12,7 +12,7 @@ type UnauthorisedErrorCode = "InvalidCredentials";
 
 type ErrorCode =
   | RegisterErrorCode
-  | CreateConversationsErrorCode
+  | CreateConversationErrorCode
   | CreateConversationMessageErrorCode
   | CreateConversationRecipientErrorCode
   | DeleteConversationRecipientErrorCode
