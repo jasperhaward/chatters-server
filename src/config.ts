@@ -29,7 +29,7 @@ const config: Readonly<Config> = {
   },
   authTokenSecret: parseEnv("AUTH_TOKEN_SECRET", "string"),
   authTokenExpiryDuration: 3000,
-  minUsernameLength: 10, // *
+  minUsernameLength: 5, // *
   maxUsernameLength: 25, // *
   minPasswordLength: 10, // *
   maxPasswordLength: 250, // *
