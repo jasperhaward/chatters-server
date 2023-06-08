@@ -1,10 +1,10 @@
-import { RegisterErrorCode } from "../controllers/authErrors";
+import { RegisterErrorCode } from "./controllers/authErrors";
 import {
   CreateConversationErrorCode,
   CreateConversationMessageErrorCode,
   CreateConversationRecipientErrorCode,
   DeleteConversationRecipientErrorCode,
-} from "../controllers/conversationsErrors";
+} from "./controllers/conversationsErrors";
 
 type ErrorStatusCode = 400 | 401 | 404 | 500;
 

@@ -2,7 +2,8 @@ import { FastifyTypebox, ControllerOptions } from "../types";
 import authentication from "../hooks/authentication";
 
 import { TConversation } from "../schema";
-import { BadRequestError, removeDuplicates } from "../util";
+import { BadRequestError } from "../errors";
+import { removeDuplicates } from "../utils";
 import {
   findConversationsByUserId,
   insertConversation,

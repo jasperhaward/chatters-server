@@ -7,7 +7,7 @@ import {
   InvalidAuthTokenError,
   validateToken,
 } from "../services";
-import { UnauthorisedError } from "../util";
+import { UnauthorisedError } from "../errors";
 
 export default function authentication(
   db: Kysely<Database>

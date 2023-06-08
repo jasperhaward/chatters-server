@@ -8,7 +8,7 @@ import {
   findUserByUsername,
   deleteTokenByTokenId,
 } from "../stores";
-import { BadRequestError, UnauthorisedError } from "../util";
+import { BadRequestError, UnauthorisedError } from "../errors";
 import { RegisterSchema, LoginSchema } from "./authSchema";
 
 export default async function auth(

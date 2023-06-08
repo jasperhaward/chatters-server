@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PoolConfig } from "pg";
-import { parseEnv } from "./util";
+import { parseEnv } from "./utils";
 
 export interface Config {
   port: number;

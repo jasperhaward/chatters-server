@@ -32,3 +32,11 @@ export function parseEnv<T extends EnvVariableType>(
 
   return value as EnvVariableTypeMap<T>;
 }
+
+export function removeDuplicates(
+  value: string,
+  index: number,
+  array: string[]
+) {
+  return array.indexOf(value) === index;
+}
