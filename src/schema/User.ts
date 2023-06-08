@@ -7,11 +7,11 @@ export const User = Type.Object({
 
 export type TUser = Static<typeof User>;
 
-export const UserWithPassword = Type.Intersect([
+export const UserWithCreatedAt = Type.Intersect([
   User,
   Type.Object({
-    password: Type.String(),
+    createdAt: Type.String(),
   }),
 ]);
 
-export type TUserWithPassword = Static<typeof UserWithPassword>;
+export type TUserWithCreatedAt = Static<typeof UserWithCreatedAt>;

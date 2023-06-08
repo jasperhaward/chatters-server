@@ -1,7 +1,7 @@
 import { FastifySchema } from "fastify";
 import { Type } from "@sinclair/typebox";
 
-import { User, Session } from "../schema";
+import { UserWithCreatedAt, Session } from "../schema";
 import config from "../config";
 
 export const RegisterSchema = {
@@ -20,7 +20,7 @@ export const RegisterSchema = {
     }),
   }),
   response: {
-    "2xx": User,
+    "2xx": UserWithCreatedAt,
   },
 } satisfies FastifySchema;
 

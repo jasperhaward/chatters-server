@@ -1,7 +1,8 @@
 import { Kysely } from "kysely";
 
+import { WithPassword } from "../types";
 import { Database, UserRow } from "../database";
-import { TUser, TUserWithPassword } from "../schema";
+import { TUser, TUserWithCreatedAt } from "../schema";
 
 export function toUserSchema(row: UserRow): TUser {
   return {
@@ -10,10 +11,18 @@ export function toUserSchema(row: UserRow): TUser {
   };
 }
 
-export function toUserWithPasswordSchema(row: UserRow): TUserWithPassword {
+export function toUserWithCreatedAtSchema(row: UserRow): TUserWithCreatedAt {
   return {
-    id: row.user_id,
-    username: row.username,
+    ...toUserSchema(row),
+    createdAt: row.created_at,
+  };
+}
+
+export function toUserWithPasswordSchema(
+  row: UserRow
+): WithPassword<TUserWithCreatedAt> {
+  return {
+    ...toUserWithCreatedAtSchema(row),
     password: row.password,
   };
 }
@@ -55,7 +64,7 @@ export async function isExistingUser(
 export async function findUserByUsername(
   db: Kysely<Database>,
   username: string
-): Promise<TUserWithPassword | null> {
+): Promise<WithPassword<TUserWithCreatedAt> | null> {
   const user = await db
     .selectFrom("user_account")
     .selectAll()
@@ -73,7 +82,7 @@ export interface InsertUserParams {
 export async function insertUser(
   db: Kysely<Database>,
   params: InsertUserParams
-): Promise<TUser> {
+): Promise<TUserWithCreatedAt> {
   const user = await db
     .insertInto("user_account")
     .values({
@@ -83,5 +92,5 @@ export async function insertUser(
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  return toUserSchema(user);
+  return toUserWithCreatedAtSchema(user);
 }

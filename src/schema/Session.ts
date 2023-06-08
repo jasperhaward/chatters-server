@@ -1,8 +1,8 @@
 import { Type, Static } from "@sinclair/typebox";
-import { User } from "./User";
+import { UserWithCreatedAt } from "./User";
 
 export const Session = Type.Object({
-  user: User,
+  user: UserWithCreatedAt,
   token: Type.String(),
 });
 

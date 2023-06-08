@@ -36,3 +36,7 @@ export type WithCreatedByUsername<T> = T & {
 export type WithUsername<T> = T & {
   username: string;
 };
+
+export type WithPassword<T> = T & {
+  password: string;
+};
