@@ -163,7 +163,7 @@ export default async function conversations(
       const params: InsertMessageParams = {
         conversationId,
         createdBy: userId,
-        content,
+        content: content.trim(),
       };
 
       const message = await insertMessage(db, params);
