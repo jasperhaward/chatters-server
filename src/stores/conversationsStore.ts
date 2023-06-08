@@ -2,8 +2,17 @@ import { Kysely, sql } from "kysely";
 import { Database } from "../database";
 import { ConversationRowWithCreatedBy } from "../tables";
 
+export async function findConversationById(db: Kysely<Database>, id: string) {
+  return await db
+    .selectFrom("conversation")
+    .where("conversation_id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
+
 /** 
- * Orders conversations by latest message first. Equivalent of:
+ * Note: orders conversations by latest message (if there is one), 
+ * or the conversation created_at timestamp. Query equivalent of:
   ```sql
   WITH user_conversation AS (
       SELECT conversation_id 
@@ -23,11 +32,7 @@ import { ConversationRowWithCreatedBy } from "../tables";
     ON u.user_id = c.created_by
   LEFT JOIN latest_message AS lm 
     ON lm.conversation_id = c.conversation_id
-  ORDER BY CASE
-      WHEN lm.created_at IS NULL THEN c.created_at
-      ELSE lm.created_at
-      END
-  DESC
+  ORDER BY GREATEST(lm.created_at, c.created_at) DESC
   ```
  */
 export async function findConversationsByUserId(
@@ -62,14 +67,8 @@ export async function findConversationsByUserId(
     .leftJoin("latest_message as lm", "lm.conversation_id", "c.conversation_id")
     .selectAll("c")
     .select("u.username as created_by_username")
-    // if there is no last_message (conversation may have 0 messages) then order on conversation created_at
-    .orderBy(
-      sql`case
-            when lm.created_at is null then c.created_at
-            else lm.created_at
-          end`,
-      "desc"
-    )
+    // 'lm' may be null (as a conversation may have 0 messages), then order on conversation created_at
+    .orderBy(sql`greatest(lm.created_at, c.created_at)`, "desc")
     .execute();
 }
 

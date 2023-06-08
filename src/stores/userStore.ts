@@ -1,19 +1,22 @@
-import { Insertable, Kysely } from "kysely";
+import { Kysely } from "kysely";
+import { Database } from "../database";
 
-import { Database, DatabaseErrorCode } from "../database";
-import { UserTable } from "../tables";
-import { isDatabaseErrorWithCode } from "../util";
+export async function findUsers(db: Kysely<Database>) {
+  // prettier-ignore
+  return await db
+    .selectFrom("user_account")
+    .selectAll()
+    .execute();
+}
 
-export class UsernameNotUniqueError extends Error {}
-
-export async function findUsersExceptUserId(
+export async function findUsersByUserIds(
   db: Kysely<Database>,
-  userId: string
+  userIds: string[]
 ) {
   return await db
     .selectFrom("user_account")
     .selectAll()
-    .where("user_id", "!=", userId)
+    .where("user_id", "in", userIds)
     .execute();
 }
 
@@ -36,20 +39,21 @@ export async function findUserByUsername(
     .executeTakeFirst();
 }
 
+export interface InsertUserParams {
+  username: string;
+  hashedPassword: string;
+}
+
 export async function insertUser(
   db: Kysely<Database>,
-  values: Insertable<UserTable>
+  params: InsertUserParams
 ) {
   return await db
     .insertInto("user_account")
-    .values(values)
+    .values({
+      username: params.username,
+      password: params.hashedPassword,
+    })
     .returningAll()
-    .executeTakeFirstOrThrow()
-    .catch((error) => {
-      if (isDatabaseErrorWithCode(error, DatabaseErrorCode.UniqueViolation)) {
-        throw new UsernameNotUniqueError();
-      }
-
-      throw error;
-    });
+    .executeTakeFirstOrThrow();
 }

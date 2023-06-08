@@ -1,5 +1,3 @@
-import { DatabaseError } from "pg";
-import { DatabaseErrorCode } from "../database";
 import { TUser, TConversation, TMessage } from "../schema";
 import {
   UserRow,
@@ -10,17 +8,6 @@ import {
 
 export * from "./env";
 export * from "./errors";
-
-export function isDatabaseErrorWithCode(
-  error: any,
-  ...codes: DatabaseErrorCode[]
-): error is DatabaseError {
-  if (!(error instanceof DatabaseError)) {
-    return false;
-  }
-
-  return codes.some((code) => error.code === code);
-}
 
 export function removeDuplicates(
   value: string,

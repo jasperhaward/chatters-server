@@ -13,11 +13,3 @@ export interface Database {
   conversation_recipient: RecipientTable;
   conversation_message: MessageTable;
 }
-
-/** See https://www.postgresql.org/docs/10/errcodes-appendix.html */
-export enum DatabaseErrorCode {
-  InvalidUUID = "22P02",
-  ForeignKeyViolation = "23503",
-  UniqueViolation = "23505",
-  ValueTooLong = "22001",
-}

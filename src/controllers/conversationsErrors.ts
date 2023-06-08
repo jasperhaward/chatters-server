@@ -1,16 +1,17 @@
 export type CreateConversationErrorCode =
   | "MinimumRecipientsRequired"
-  | "MaximumRecipientsExceeded"
   | "RecipientNotFound";
 
 export type CreateConversationMessageErrorCode =
-  | "MinimumLengthRequired"
-  | "MaximumLengthExceeded"
-  | "CreatedByNotConversationRecipient";
+  | "ConversationNotFound"
+  | "UserNotConversationRecipient";
 
 export type CreateConversationRecipientErrorCode =
-  | "RecipientAlreadyConversationMember"
-  | "RecipientNotFound";
+  | "ConversationNotFound"
+  | "RecipientNotFound"
+  | "RecipientAlreadyConversationMember";
 
 export type DeleteConversationRecipientErrorCode =
+  | "ConversationNotFound"
+  | "MinimumRecipientsRequired"
   | "RecipientNotConversationMember";

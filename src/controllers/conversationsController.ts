@@ -13,18 +13,23 @@ import {
 import {
   findConversationsByUserId,
   insertConversation,
-  RecipientNotFoundError,
   findRecipientsByConversationId,
   isRecipientInConversation,
   insertRecipients,
   findMessagesByConversationId,
-  MessageLengthExceededError,
   insertMessage,
   deleteRecipient,
+  findConversationById,
+  findUsersByUserIds,
+  InsertConversationParams,
+  InsertRecipientsParams,
+  InsertMessageParams,
+  findUserByUserId,
+  DeleteRecipientParams,
 } from "../stores";
 import {
   GetConversationsSchema,
-  CreateConversationsSchema,
+  CreateConversationSchema,
   CreateConversationMessageSchema,
   CreateConversationRecipientSchema,
   DeleteConversationRecipientSchema,
@@ -53,12 +58,15 @@ export default async function conversations(
         const messages = await findMessagesByConversationId(db, conversationId);
         const recipients = await findRecipientsByConversationId(
           db,
-          conversationId,
-          userId
+          conversationId
         );
 
         conversations.push(
-          toConversationSchema(conversation, recipients, messages)
+          toConversationSchema(
+            conversation,
+            recipients.filter((recipient) => recipient.user_id !== userId),
+            messages
+          )
         );
       }
 
@@ -70,7 +78,7 @@ export default async function conversations(
     "/",
     {
       preHandler: authentication(db),
-      schema: CreateConversationsSchema,
+      schema: CreateConversationSchema,
     },
     async (request) => {
       const { userId } = request.token;
@@ -87,41 +95,40 @@ export default async function conversations(
         );
       }
 
-      if (sanitisedRecipientIds.length > config.maxConversationRecipients) {
+      const users = await findUsersByUserIds(db, sanitisedRecipientIds);
+
+      if (users.length !== sanitisedRecipientIds.length) {
         throw new BadRequestError(
-          "MaximumRecipientsExceeded",
-          `conversation must have less than '${config.maxConversationRecipients}' recipients`
+          "RecipientNotFound",
+          `user with id from 'recipientIds' not found`
         );
       }
 
-      const conversation = await db
+      const conversation: TConversation = await db
         .transaction()
-        .execute<TConversation>(async (trx) => {
-          const conversation = await insertConversation(trx, {
+        .execute(async (trx) => {
+          const conversationParams: InsertConversationParams = {
             createdBy: userId,
             title,
-          });
+          };
 
-          const recipients = await insertRecipients(trx, {
+          const conversation = await insertConversation(
+            trx,
+            conversationParams
+          );
+
+          const recipientsParams: InsertRecipientsParams = {
             conversationId: conversation.conversation_id,
             recipientIds: [userId, ...sanitisedRecipientIds],
-          });
+          };
+
+          const recipients = await insertRecipients(trx, recipientsParams);
 
           return toConversationSchema(
             conversation,
-            recipients.filter((recipient) => recipient.user_id !== userId), // remove current user
+            recipients.filter((recipient) => recipient.user_id !== userId),
             []
           );
-        })
-        .catch((error) => {
-          if (error instanceof RecipientNotFoundError) {
-            throw new BadRequestError(
-              "RecipientNotFound",
-              "recipient of 'recipientIds' not found"
-            );
-          }
-
-          throw error;
         });
 
       return conversation;
@@ -135,41 +142,31 @@ export default async function conversations(
       schema: CreateConversationMessageSchema,
     },
     async (request) => {
+      const { userId } = request.token;
       const { conversationId } = request.params;
-      const { createdBy, content } = request.body;
+      const { content } = request.body;
 
-      const trimmedContent = content.trim();
-
-      if (trimmedContent === "") {
+      if (!(await findConversationById(db, conversationId))) {
         throw new BadRequestError(
-          "MinimumLengthRequired",
-          "message 'content' cannot be empty or whitespace"
+          "ConversationNotFound",
+          "conversation with id 'conversationId' not found"
         );
       }
 
-      if (!(await isRecipientInConversation(db, createdBy, conversationId))) {
+      if (!(await isRecipientInConversation(db, userId, conversationId))) {
         throw new BadRequestError(
-          "CreatedByNotConversationRecipient",
-          "'createdBy' & 'conversationId' must exist and 'createdBy' must be recipient of conversation"
+          "UserNotConversationRecipient",
+          "user must be recipient of conversation"
         );
       }
 
-      const params = {
+      const params: InsertMessageParams = {
         conversationId,
-        createdBy,
-        content: trimmedContent,
+        createdBy: userId,
+        content,
       };
 
-      const message = await insertMessage(db, params).catch((error) => {
-        if (error instanceof MessageLengthExceededError) {
-          throw new BadRequestError(
-            "MaximumLengthExceeded",
-            "message 'content' too long"
-          );
-        }
-
-        throw error;
-      });
+      const message = await insertMessage(db, params);
 
       return toMessageSchema(message);
     }
@@ -185,28 +182,33 @@ export default async function conversations(
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
-      if (await isRecipientInConversation(db, recipientId, conversationId)) {
+      if (!(await findConversationById(db, conversationId))) {
         throw new BadRequestError(
-          "RecipientAlreadyConversationMember",
-          "'recipientId' & 'conversationId' must exist and 'recipientId' must not be recipient of conversation"
+          "ConversationNotFound",
+          "conversation with id 'conversationId' not found"
         );
       }
 
-      const params = {
+      if (!(await findUserByUserId(db, recipientId))) {
+        throw new BadRequestError(
+          "RecipientNotFound",
+          `user with id 'recipientId' not found`
+        );
+      }
+
+      if (await isRecipientInConversation(db, recipientId, conversationId)) {
+        throw new BadRequestError(
+          "RecipientAlreadyConversationMember",
+          "user with id 'recipientId' is already recipient of conversation"
+        );
+      }
+
+      const params: InsertRecipientsParams = {
         conversationId,
         recipientIds: [recipientId],
       };
 
-      const [recipient] = await insertRecipients(db, params).catch((error) => {
-        if (error instanceof RecipientNotFoundError) {
-          throw new BadRequestError(
-            "RecipientNotFound",
-            "recipient of 'recipientId' not found"
-          );
-        }
-
-        throw error;
-      });
+      const [recipient] = await insertRecipients(db, params);
 
       return toUserSchema(recipient);
     }
@@ -222,14 +224,43 @@ export default async function conversations(
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
-      if (!(await isRecipientInConversation(db, recipientId, conversationId))) {
+      if (!(await findConversationById(db, conversationId))) {
         throw new BadRequestError(
-          "RecipientNotConversationMember",
-          "'recipientId' & 'conversationId' must exist and 'recipientId' must be recipient of conversation"
+          "ConversationNotFound",
+          "conversation with id 'conversationId' not found"
         );
       }
 
-      const params = { conversationId, recipientId };
+      if (!(await findUserByUserId(db, recipientId))) {
+        throw new BadRequestError(
+          "RecipientNotFound",
+          `user with id 'recipientId' not found`
+        );
+      }
+
+      if (!(await isRecipientInConversation(db, recipientId, conversationId))) {
+        throw new BadRequestError(
+          "RecipientNotConversationMember",
+          "user with id 'recipientId' must be recipient of conversation"
+        );
+      }
+
+      const recipients = await findRecipientsByConversationId(
+        db,
+        conversationId
+      );
+
+      if (recipients.length === 2) {
+        throw new BadRequestError(
+          "MinimumRecipientsRequired",
+          "conversation must have at least 2 recipients"
+        );
+      }
+
+      const params: DeleteRecipientParams = {
+        conversationId,
+        recipientId,
+      };
 
       await deleteRecipient(db, params);
 

@@ -1,16 +1,11 @@
 import { Kysely } from "kysely";
 
-import { isDatabaseErrorWithCode } from "../util";
-import { Database, DatabaseErrorCode } from "../database";
+import { Database } from "../database";
 import { RecipientRowWithUsername } from "../tables";
 
-export class RecipientNotFoundError extends Error {}
-
-/** Gets recipients for a conversation, excluding the current user. */
 export async function findRecipientsByConversationId(
   db: Kysely<Database>,
-  conversationId: string,
-  userId: string
+  conversationId: string
 ): Promise<RecipientRowWithUsername[]> {
   return await db
     .selectFrom("conversation_recipient as r")
@@ -18,7 +13,6 @@ export async function findRecipientsByConversationId(
     .selectAll("r")
     .select("u.username")
     .where("r.conversation_id", "=", conversationId)
-    .where("r.user_id", "!=", userId)
     .orderBy("r.created_at")
     .execute();
 }
@@ -78,16 +72,7 @@ export async function insertRecipients(
     .innerJoin("user_account as u", "u.user_id", "r.user_id")
     .selectAll("r")
     .select("u.username")
-    .execute()
-    .catch((error) => {
-      if (
-        isDatabaseErrorWithCode(error, DatabaseErrorCode.ForeignKeyViolation)
-      ) {
-        throw new RecipientNotFoundError();
-      }
-
-      throw error;
-    });
+    .execute();
 }
 
 export interface DeleteRecipientParams {

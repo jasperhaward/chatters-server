@@ -1,17 +1,11 @@
 import { FastifyTypebox, ControllerOptions } from "../types";
 import authentication from "../hooks/authentication";
 
+import { encryptPassword, verifyPassword, generateToken } from "../services";
 import {
-  encryptPassword,
-  verifyPassword,
-  PasswordTooLongError,
-  PasswordTooWeakError,
-  generateToken,
-} from "../services";
-import {
+  InsertUserParams,
   insertUser,
   findUserByUsername,
-  UsernameNotUniqueError,
   deleteTokenByTokenId,
 } from "../stores";
 import { BadRequestError, UnauthorisedError, toUserSchema } from "../util";
@@ -36,37 +30,23 @@ export default async function auth(
         );
       }
 
-      try {
-        const hashedPassword = encryptPassword(password);
-
-        const user = await insertUser(db, {
-          username,
-          password: hashedPassword,
-        });
-
-        reply.code(201);
-
-        return toUserSchema(user);
-      } catch (error) {
-        if (error instanceof UsernameNotUniqueError) {
-          throw new BadRequestError(
-            "UsernameNotUnique",
-            "'username' must be unique"
-          );
-        } else if (error instanceof PasswordTooWeakError) {
-          throw new BadRequestError(
-            "PasswordTooWeak",
-            "'password' is too short"
-          );
-        } else if (error instanceof PasswordTooLongError) {
-          throw new BadRequestError(
-            "PasswordTooLong",
-            "'password' is too long"
-          );
-        }
-
-        throw error;
+      if (await findUserByUsername(db, username)) {
+        throw new BadRequestError(
+          "UsernameNotUnique",
+          "'username' must be unique"
+        );
       }
+
+      const params: InsertUserParams = {
+        username,
+        hashedPassword: encryptPassword(password),
+      };
+
+      const user = await insertUser(db, params);
+
+      reply.code(201);
+
+      return toUserSchema(user);
     }
   );
 

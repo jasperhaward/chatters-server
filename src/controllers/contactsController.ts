@@ -1,7 +1,7 @@
 import { FastifyTypebox, ControllerOptions } from "../types";
 import authentication from "../hooks/authentication";
 
-import { findUsersExceptUserId } from "../stores";
+import { findUsers } from "../stores";
 import { GetContactsSchema } from "./contactsSchema";
 import { toUserSchema } from "../util";
 
@@ -20,9 +20,12 @@ export default async function contacts(
     async (request) => {
       const { userId } = request.token;
 
-      const users = await findUsersExceptUserId(db, userId);
+      const contacts = await findUsers(db);
 
-      return users.map(toUserSchema);
+      // prettier-ignore
+      return contacts
+        .map(toUserSchema)
+        .filter((contact) => contact.id !== userId);
     }
   );
 }

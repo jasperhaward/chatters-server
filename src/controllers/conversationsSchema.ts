@@ -2,6 +2,7 @@ import { FastifySchema } from "fastify";
 import { Type } from "@sinclair/typebox";
 
 import { Conversation, Message, User } from "../schema";
+import config from "../config";
 
 export const GetConversationsSchema = {
   response: {
@@ -9,10 +10,15 @@ export const GetConversationsSchema = {
   },
 } satisfies FastifySchema;
 
-export const CreateConversationsSchema = {
+export const CreateConversationSchema = {
   body: Type.Object({
     recipientIds: Type.Array(Type.String({ format: "uuid" })),
-    title: Type.Optional(Type.String()),
+    title: Type.Optional(
+      Type.String({
+        minLength: 1,
+        maxLength: config.maxConversationTitleLength,
+      })
+    ),
   }),
   response: {
     "2xx": Conversation,
@@ -24,8 +30,10 @@ export const CreateConversationMessageSchema = {
     conversationId: Type.String({ format: "uuid" }),
   }),
   body: Type.Object({
-    createdBy: Type.String({ format: "uuid" }),
-    content: Type.String(),
+    content: Type.String({
+      pattern: "\\S", // message cannot be only whitespace
+      maxLength: config.maxMessageLength,
+    }),
   }),
   response: {
     "2xx": Message,
