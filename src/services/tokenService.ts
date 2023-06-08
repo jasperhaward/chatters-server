@@ -6,7 +6,6 @@ import { Database } from "../database";
 import { insertToken, findTokenByTokenId } from "../stores";
 
 export class InvalidAuthTokenError extends Error {}
-export class MalformedAuthTokenError extends Error {}
 export class ExpiredAuthTokenError extends Error {}
 
 export interface TokenPayload {
