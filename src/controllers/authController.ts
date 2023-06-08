@@ -8,7 +8,7 @@ import {
   findUserByUsername,
   deleteTokenByTokenId,
 } from "../stores";
-import { BadRequestError, UnauthorisedError, toUserSchema } from "../util";
+import { BadRequestError, UnauthorisedError } from "../util";
 import { RegisterSchema, LoginSchema } from "./authSchema";
 
 export default async function auth(
@@ -37,16 +37,14 @@ export default async function auth(
         );
       }
 
+      reply.code(201);
+
       const params: InsertUserParams = {
         username,
         hashedPassword: encryptPassword(password),
       };
 
-      const user = await insertUser(db, params);
-
-      reply.code(201);
-
-      return toUserSchema(user);
+      return await insertUser(db, params);
     }
   );
 
@@ -59,12 +57,9 @@ export default async function auth(
       throw new UnauthorisedError();
     }
 
-    const token = await generateToken(db, user.user_id);
+    const token = await generateToken(db, user.id);
 
-    return {
-      user: toUserSchema(user),
-      token,
-    };
+    return { user, token };
   });
 
   fastify.post(

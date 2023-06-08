@@ -29,6 +29,10 @@ export interface ControllerOptions {
   db: Kysely<Database>;
 }
 
-export type WithCreatedBy<T> = T & {
+export type WithCreatedByUsername<T> = T & {
   created_by_username: string;
+};
+
+export type WithUsername<T> = T & {
+  username: string;
 };

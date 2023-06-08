@@ -1,13 +1,32 @@
 import { Kysely, sql } from "kysely";
-import { Database } from "../database";
-import { ConversationRowWithCreatedBy } from "../tables";
 
-export async function findConversationById(db: Kysely<Database>, id: string) {
-  return await db
+import { WithCreatedByUsername } from "../types";
+import { Database, ConversationRow } from "../database";
+import { TBaseConversation } from "../schema";
+
+export function toConversationSchema(
+  row: WithCreatedByUsername<ConversationRow>
+): TBaseConversation {
+  return {
+    id: row.conversation_id,
+    createdAt: row.created_at,
+    createdBy: {
+      id: row.created_by,
+      username: row.created_by_username,
+    },
+    title: row.title,
+  };
+}
+
+export async function isExistingConversation(
+  db: Kysely<Database>,
+  conversationId: string
+): Promise<boolean> {
+  return !!(await db
     .selectFrom("conversation")
-    .where("conversation_id", "=", id)
+    .where("conversation_id", "=", conversationId)
     .selectAll()
-    .executeTakeFirst();
+    .executeTakeFirst());
 }
 
 /** 
@@ -38,10 +57,10 @@ export async function findConversationById(db: Kysely<Database>, id: string) {
 export async function findConversationsByUserId(
   db: Kysely<Database>,
   userId: string
-): Promise<ConversationRowWithCreatedBy[]> {
+): Promise<TBaseConversation[]> {
   const { max } = db.fn;
 
-  return await db
+  const conversations = await db
     // conversation ids where the user is a recipient
     .with("user_conversation", (db) =>
       db
@@ -70,6 +89,8 @@ export async function findConversationsByUserId(
     // 'lm' may be null (as a conversation may have 0 messages), then order on conversation created_at
     .orderBy(sql`greatest(lm.created_at, c.created_at)`, "desc")
     .execute();
+
+  return conversations.map(toConversationSchema);
 }
 
 export interface InsertConversationParams {
@@ -80,8 +101,8 @@ export interface InsertConversationParams {
 export async function insertConversation(
   db: Kysely<Database>,
   params: InsertConversationParams
-): Promise<ConversationRowWithCreatedBy> {
-  return await db
+): Promise<TBaseConversation> {
+  const conversation = await db
     .with("c", (db) =>
       db
         .insertInto("conversation")
@@ -96,4 +117,6 @@ export async function insertConversation(
     .selectAll("c")
     .select("u.username as created_by_username")
     .executeTakeFirstOrThrow();
+
+  return toConversationSchema(conversation);
 }

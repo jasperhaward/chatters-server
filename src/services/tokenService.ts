@@ -17,13 +17,7 @@ export interface TokenPayload {
 export async function generateToken(db: Kysely<Database>, userId: string) {
   const token = await insertToken(db, userId);
 
-  const tokenPayload: TokenPayload = {
-    createdAt: token.created_at,
-    userId,
-    tokenId: token.token_id,
-  };
-
-  return jwt.sign(tokenPayload, config.authTokenSecret, {
+  return jwt.sign(token, config.authTokenSecret, {
     expiresIn: config.authTokenExpiryDuration,
   });
 }
@@ -34,7 +28,7 @@ export async function validateToken(db: Kysely<Database>, token: string) {
   if (isValidTokenPayload(payload)) {
     const storedToken = await findTokenByTokenId(db, payload.tokenId);
 
-    if (!storedToken || storedToken.user_id !== payload.userId) {
+    if (!storedToken || storedToken.userId !== payload.userId) {
       throw new InvalidAuthTokenError();
     }
 

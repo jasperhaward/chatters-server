@@ -1,15 +1,8 @@
 import { FastifyTypebox, ControllerOptions } from "../types";
 import authentication from "../hooks/authentication";
 
-import config from "../config";
 import { TConversation } from "../schema";
-import {
-  BadRequestError,
-  removeDuplicates,
-  toConversationSchema,
-  toMessageSchema,
-  toUserSchema,
-} from "../util";
+import { BadRequestError, removeDuplicates } from "../util";
 import {
   findConversationsByUserId,
   insertConversation,
@@ -19,12 +12,12 @@ import {
   findMessagesByConversationId,
   insertMessage,
   deleteRecipient,
-  findConversationById,
+  isExistingConversation,
   findUsersByUserIds,
   InsertConversationParams,
   InsertRecipientsParams,
   InsertMessageParams,
-  findUserByUserId,
+  isExistingUser,
   DeleteRecipientParams,
 } from "../stores";
 import {
@@ -53,21 +46,20 @@ export default async function conversations(
       const conversations: TConversation[] = [];
 
       for (const conversation of await findConversationsByUserId(db, userId)) {
-        const conversationId = conversation.conversation_id;
-
-        const messages = await findMessagesByConversationId(db, conversationId);
+        const messages = await findMessagesByConversationId(
+          db,
+          conversation.id
+        );
         const recipients = await findRecipientsByConversationId(
           db,
-          conversationId
+          conversation.id
         );
 
-        conversations.push(
-          toConversationSchema(
-            conversation,
-            recipients.filter((recipient) => recipient.user_id !== userId),
-            messages
-          )
-        );
+        conversations.push({
+          ...conversation,
+          recipients: recipients.filter((recipient) => recipient.id !== userId),
+          messages,
+        });
       }
 
       return conversations;
@@ -118,17 +110,19 @@ export default async function conversations(
           );
 
           const recipientsParams: InsertRecipientsParams = {
-            conversationId: conversation.conversation_id,
+            conversationId: conversation.id,
             recipientIds: [userId, ...sanitisedRecipientIds],
           };
 
           const recipients = await insertRecipients(trx, recipientsParams);
 
-          return toConversationSchema(
-            conversation,
-            recipients.filter((recipient) => recipient.user_id !== userId),
-            []
-          );
+          return {
+            ...conversation,
+            recipients: recipients.filter(
+              (recipient) => recipient.id !== userId
+            ),
+            messages: [],
+          };
         });
 
       return conversation;
@@ -146,7 +140,7 @@ export default async function conversations(
       const { conversationId } = request.params;
       const { content } = request.body;
 
-      if (!(await findConversationById(db, conversationId))) {
+      if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
           "conversation with id 'conversationId' not found"
@@ -166,9 +160,7 @@ export default async function conversations(
         content: content.trim(),
       };
 
-      const message = await insertMessage(db, params);
-
-      return toMessageSchema(message);
+      return await insertMessage(db, params);
     }
   );
 
@@ -182,14 +174,14 @@ export default async function conversations(
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
-      if (!(await findConversationById(db, conversationId))) {
+      if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
           "conversation with id 'conversationId' not found"
         );
       }
 
-      if (!(await findUserByUserId(db, recipientId))) {
+      if (!(await isExistingUser(db, recipientId))) {
         throw new BadRequestError(
           "RecipientNotFound",
           `user with id 'recipientId' not found`
@@ -210,7 +202,7 @@ export default async function conversations(
 
       const [recipient] = await insertRecipients(db, params);
 
-      return toUserSchema(recipient);
+      return recipient;
     }
   );
 
@@ -224,14 +216,14 @@ export default async function conversations(
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
-      if (!(await findConversationById(db, conversationId))) {
+      if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
           "conversation with id 'conversationId' not found"
         );
       }
 
-      if (!(await findUserByUserId(db, recipientId))) {
+      if (!(await isExistingUser(db, recipientId))) {
         throw new BadRequestError(
           "RecipientNotFound",
           `user with id 'recipientId' not found`

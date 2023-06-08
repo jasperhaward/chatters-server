@@ -1,13 +1,21 @@
 import { Kysely } from "kysely";
 
-import { Database } from "../database";
-import { RecipientRowWithUsername } from "../tables";
+import { Database, RecipientRow } from "../database";
+import { TUser } from "../schema";
+import { WithUsername } from "../types";
+
+export function toRecipientSchema(row: WithUsername<RecipientRow>): TUser {
+  return {
+    id: row.user_id,
+    username: row.username,
+  };
+}
 
 export async function findRecipientsByConversationId(
   db: Kysely<Database>,
   conversationId: string
-): Promise<RecipientRowWithUsername[]> {
-  return await db
+): Promise<TUser[]> {
+  const recipients = await db
     .selectFrom("conversation_recipient as r")
     .innerJoin("user_account as u", "u.user_id", "r.user_id")
     .selectAll("r")
@@ -15,13 +23,15 @@ export async function findRecipientsByConversationId(
     .where("r.conversation_id", "=", conversationId)
     .orderBy("r.created_at")
     .execute();
+
+  return recipients.map(toRecipientSchema);
 }
 
 export async function isRecipientInConversation(
   db: Kysely<Database>,
   recipientId: string,
   conversationId: string
-) {
+): Promise<boolean> {
   return !!(await db
     .selectFrom("conversation_recipient")
     .selectAll()
@@ -30,6 +40,7 @@ export async function isRecipientInConversation(
     .executeTakeFirst());
 }
 
+// May be needed in the future
 export async function findConversationsByRecipientIds(
   db: Kysely<Database>,
   recipientIds: string[]
@@ -53,10 +64,10 @@ export interface InsertRecipientsParams {
 export async function insertRecipients(
   db: Kysely<Database>,
   params: InsertRecipientsParams
-): Promise<RecipientRowWithUsername[]> {
+): Promise<TUser[]> {
   const { conversationId, recipientIds } = params;
 
-  return await db
+  const recipients = await db
     .with("r", (db) =>
       db
         .insertInto("conversation_recipient")
@@ -73,6 +84,8 @@ export async function insertRecipients(
     .selectAll("r")
     .select("u.username")
     .execute();
+
+  return recipients.map(toRecipientSchema);
 }
 
 export interface DeleteRecipientParams {
@@ -86,7 +99,7 @@ export async function deleteRecipient(
 ) {
   const { conversationId, recipientId } = params;
 
-  return await db
+  await db
     .deleteFrom("conversation_recipient")
     .where("conversation_id", "=", conversationId)
     .where("user_id", "=", recipientId)

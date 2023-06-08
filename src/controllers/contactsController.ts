@@ -3,7 +3,6 @@ import authentication from "../hooks/authentication";
 
 import { findUsers } from "../stores";
 import { GetContactsSchema } from "./contactsSchema";
-import { toUserSchema } from "../util";
 
 export default async function contacts(
   fastify: FastifyTypebox,
@@ -20,12 +19,9 @@ export default async function contacts(
     async (request) => {
       const { userId } = request.token;
 
-      const contacts = await findUsers(db);
+      const users = await findUsers(db);
 
-      // prettier-ignore
-      return contacts
-        .map(toUserSchema)
-        .filter((contact) => contact.id !== userId);
+      return users.filter((user) => user.id !== userId);
     }
   );
 }

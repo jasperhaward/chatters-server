@@ -12,3 +12,4 @@ export const Conversation = Type.Object({
 });
 
 export type TConversation = Static<typeof Conversation>;
+export type TBaseConversation = Omit<TConversation, "recipients" | "messages">;
