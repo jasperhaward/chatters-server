@@ -20,14 +20,15 @@ export function parseEnv<
     }
   }
 
-  if (type === "number") {
-    if (!/[0-9]+/.test(value)) {
-      throw new Error(`Environment variable '${name}' must be an integer`);
-    }
+  switch (type) {
+    case "number":
+      if (!/[0-9]+/.test(value)) {
+        throw new Error(`Environment variable '${name}' must be an integer`);
+      }
 
-    return parseInt(value) as Value;
-  } else {
-    return value as Value;
+      return parseInt(value) as Value;
+    default:
+      return value as Value;
   }
 }
 
