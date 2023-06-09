@@ -19,14 +19,15 @@ export default class App {
   constructor(config: Config) {
     this.config = config;
 
-    this.fastify = Fastify({ logger: true });
-
     this.db = new Kysely<Database>({
       dialect: new PostgresDialect({
         pool: new Pool(this.config.database),
       }),
     });
 
+    this.fastify = Fastify({ logger: true });
+
+    this.fastify.decorateRequest("token", null);
     this.fastify.register(cors);
 
     this.fastify.register(authController, {
