@@ -6,11 +6,10 @@ export type EnvVariableTypeMap<T> = T extends "string"
   ? number
   : never;
 
-export function parseEnv<T extends EnvVariableType>(
-  name: string,
-  type: T,
-  defaultValue?: EnvVariableTypeMap<T>
-): EnvVariableTypeMap<T> {
+export function parseEnv<
+  Type extends EnvVariableType,
+  Value extends EnvVariableTypeMap<Type>
+>(name: string, type: Type, defaultValue?: Value): Value {
   const value = process.env[name];
 
   if (!value) {
@@ -21,16 +20,15 @@ export function parseEnv<T extends EnvVariableType>(
     }
   }
 
-  switch (type) {
-    case "number":
-      if (!/[0-9]+/.test(value)) {
-        throw new Error(`Environment variable '${name}' must be an integer`);
-      }
+  if (type === "number") {
+    if (!/[0-9]+/.test(value)) {
+      throw new Error(`Environment variable '${name}' must be an integer`);
+    }
 
-      return parseInt(value) as EnvVariableTypeMap<T>;
+    return parseInt(value) as Value;
+  } else {
+    return value as Value;
   }
-
-  return value as EnvVariableTypeMap<T>;
 }
 
 export function removeDuplicates(
