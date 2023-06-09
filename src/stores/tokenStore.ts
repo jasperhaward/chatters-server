@@ -34,7 +34,11 @@ export async function findTokenByTokenId(
     .where("token_id", "=", tokenId)
     .executeTakeFirst();
 
-  return token ? toTokenPayload(token) : null;
+  if (!token) {
+    return null;
+  }
+
+  return toTokenPayload(token);
 }
 
 export async function deleteTokenByTokenId(
