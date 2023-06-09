@@ -73,7 +73,7 @@ export default async function conversations(
       preHandler: authentication(db),
       schema: CreateConversationSchema,
     },
-    async (request) => {
+    async (request, reply) => {
       const { userId } = request.token;
       const { recipientIds, title } = request.body;
 
@@ -97,7 +97,7 @@ export default async function conversations(
         );
       }
 
-      return await db.transaction().execute(async (trx) => {
+      const conversation = await db.transaction().execute(async (trx) => {
         const conversationParams: InsertConversationParams = {
           createdBy: userId,
           title,
@@ -118,6 +118,10 @@ export default async function conversations(
           messages: [],
         };
       });
+
+      reply.code(201);
+
+      return conversation;
     }
   );
 
@@ -127,7 +131,7 @@ export default async function conversations(
       preHandler: authentication(db),
       schema: CreateConversationMessageSchema,
     },
-    async (request) => {
+    async (request, reply) => {
       const { userId } = request.token;
       const { conversationId } = request.params;
       const { content } = request.body;
@@ -146,6 +150,8 @@ export default async function conversations(
         );
       }
 
+      reply.code(201);
+
       const params: InsertMessageParams = {
         conversationId,
         createdBy: userId,
@@ -162,7 +168,7 @@ export default async function conversations(
       preHandler: authentication(db),
       schema: CreateConversationRecipientSchema,
     },
-    async (request) => {
+    async (request, reply) => {
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
@@ -193,6 +199,8 @@ export default async function conversations(
       };
 
       const [recipient] = await insertRecipients(db, params);
+
+      reply.code(201);
 
       return recipient;
     }
