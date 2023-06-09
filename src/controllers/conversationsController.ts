@@ -97,36 +97,27 @@ export default async function conversations(
         );
       }
 
-      const conversation: TConversation = await db
-        .transaction()
-        .execute(async (trx) => {
-          const conversationParams: InsertConversationParams = {
-            createdBy: userId,
-            title,
-          };
+      return await db.transaction().execute(async (trx) => {
+        const conversationParams: InsertConversationParams = {
+          createdBy: userId,
+          title,
+        };
 
-          const conversation = await insertConversation(
-            trx,
-            conversationParams
-          );
+        const conversation = await insertConversation(trx, conversationParams);
 
-          const recipientsParams: InsertRecipientsParams = {
-            conversationId: conversation.id,
-            recipientIds: [userId, ...sanitisedRecipientIds],
-          };
+        const recipientsParams: InsertRecipientsParams = {
+          conversationId: conversation.id,
+          recipientIds: [userId, ...sanitisedRecipientIds],
+        };
 
-          const recipients = await insertRecipients(trx, recipientsParams);
+        const recipients = await insertRecipients(trx, recipientsParams);
 
-          return {
-            ...conversation,
-            recipients: recipients.filter(
-              (recipient) => recipient.id !== userId
-            ),
-            messages: [],
-          };
-        });
-
-      return conversation;
+        return {
+          ...conversation,
+          recipients: recipients.filter((recipient) => recipient.id !== userId),
+          messages: [],
+        };
+      });
     }
   );
 
