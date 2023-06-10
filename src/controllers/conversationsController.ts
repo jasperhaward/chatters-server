@@ -18,7 +18,7 @@ import {
   InsertConversationParams,
   InsertRecipientsParams,
   InsertMessageParams,
-  isExistingUser,
+  findUserByUserId,
   DeleteRecipientParams,
 } from "../stores";
 import {
@@ -33,7 +33,7 @@ export default async function conversations(
   fastify: FastifyTypebox,
   options: ControllerOptions
 ) {
-  const { db } = options;
+  const { db, sendEvent } = options;
 
   fastify.get(
     "/",
@@ -121,6 +121,11 @@ export default async function conversations(
 
       reply.code(201);
 
+      sendEvent(sanitisedRecipientIds, {
+        type: "conversation",
+        payload: conversation,
+      });
+
       return conversation;
     }
   );
@@ -143,7 +148,12 @@ export default async function conversations(
         );
       }
 
-      if (!(await isRecipientInConversation(db, userId, conversationId))) {
+      const recipients = await findRecipientsByConversationId(
+        db,
+        conversationId
+      );
+
+      if (!isRecipientInConversation(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           "user must be recipient of conversation"
@@ -158,7 +168,18 @@ export default async function conversations(
         content: content.trim(),
       };
 
-      return await insertMessage(db, params);
+      const message = await insertMessage(db, params);
+
+      const eventRecipientIds = recipients
+        .map((recipient) => recipient.id)
+        .filter((recipientId) => recipientId !== userId);
+
+      sendEvent(eventRecipientIds, {
+        type: "message",
+        payload: message,
+      });
+
+      return message;
     }
   );
 
@@ -169,6 +190,7 @@ export default async function conversations(
       schema: CreateConversationRecipientSchema,
     },
     async (request, reply) => {
+      const { userId } = request.token;
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
@@ -179,14 +201,19 @@ export default async function conversations(
         );
       }
 
-      if (!(await isExistingUser(db, recipientId))) {
+      if (!(await findUserByUserId(db, recipientId))) {
         throw new BadRequestError(
           "RecipientNotFound",
           `user with id 'recipientId' not found`
         );
       }
 
-      if (await isRecipientInConversation(db, recipientId, conversationId)) {
+      const recipients = await findRecipientsByConversationId(
+        db,
+        conversationId
+      );
+
+      if (isRecipientInConversation(recipients, recipientId)) {
         throw new BadRequestError(
           "RecipientAlreadyConversationMember",
           "user with id 'recipientId' is already recipient of conversation"
@@ -202,6 +229,15 @@ export default async function conversations(
 
       reply.code(201);
 
+      const eventRecipientIds = recipients
+        .map((recipient) => recipient.id)
+        .filter((recipientId) => recipientId !== userId);
+
+      sendEvent(eventRecipientIds, {
+        type: "recipient/added",
+        payload: recipient,
+      });
+
       return recipient;
     }
   );
@@ -212,7 +248,8 @@ export default async function conversations(
       preHandler: authentication(db),
       schema: DeleteConversationRecipientSchema,
     },
-    async (request, reply) => {
+    async (request) => {
+      const { userId } = request.token;
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
@@ -223,17 +260,12 @@ export default async function conversations(
         );
       }
 
-      if (!(await isExistingUser(db, recipientId))) {
+      const recipient = await findUserByUserId(db, recipientId);
+
+      if (!recipient) {
         throw new BadRequestError(
           "RecipientNotFound",
           `user with id 'recipientId' not found`
-        );
-      }
-
-      if (!(await isRecipientInConversation(db, recipientId, conversationId))) {
-        throw new BadRequestError(
-          "RecipientNotConversationMember",
-          "user with id 'recipientId' must be recipient of conversation"
         );
       }
 
@@ -241,6 +273,13 @@ export default async function conversations(
         db,
         conversationId
       );
+
+      if (!isRecipientInConversation(recipients, recipientId)) {
+        throw new BadRequestError(
+          "RecipientNotConversationMember",
+          "user with id 'recipientId' must be recipient of conversation"
+        );
+      }
 
       if (recipients.length === 2) {
         throw new BadRequestError(
@@ -256,7 +295,16 @@ export default async function conversations(
 
       await deleteRecipient(db, params);
 
-      reply.code(204);
+      const eventRecipientIds = recipients
+        .map((recipient) => recipient.id)
+        .filter((recipientId) => recipientId !== userId);
+
+      sendEvent(eventRecipientIds, {
+        type: "recipient/removed",
+        payload: recipient,
+      });
+
+      return recipient;
     }
   );
 }

@@ -27,17 +27,11 @@ export async function findRecipientsByConversationId(
   return recipients.map(toRecipientSchema);
 }
 
-export async function isRecipientInConversation(
-  db: Kysely<Database>,
-  recipientId: string,
-  conversationId: string
-): Promise<boolean> {
-  return !!(await db
-    .selectFrom("conversation_recipient")
-    .selectAll()
-    .where("conversation_id", "=", conversationId)
-    .where("user_id", "=", recipientId)
-    .executeTakeFirst());
+export function isRecipientInConversation(
+  recipients: TUser[],
+  recipientId: string
+) {
+  return !!recipients.find((recipient) => recipient.id === recipientId);
 }
 
 // May be needed in the future

@@ -33,17 +33,6 @@ export async function findUsersByUserIds(
   return users.map(toUserSchema);
 }
 
-export async function isExistingUser(
-  db: Kysely<Database>,
-  userId: string
-): Promise<boolean> {
-  return !!(await db
-    .selectFrom("user_account")
-    .selectAll()
-    .where("user_id", "=", userId)
-    .executeTakeFirstOrThrow());
-}
-
 export async function findUserByUsername(
   db: Kysely<Database>,
   username: string
@@ -63,6 +52,23 @@ export async function findUserByUsername(
     createdAt: user.created_at,
     password: user.password,
   };
+}
+
+export async function findUserByUserId(
+  db: Kysely<Database>,
+  userId: string
+): Promise<TUser | null> {
+  const user = await db
+    .selectFrom("user_account")
+    .selectAll()
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
+
+  if (!user) {
+    return null;
+  }
+
+  return toUserSchema(user);
 }
 
 export interface InsertUserParams {

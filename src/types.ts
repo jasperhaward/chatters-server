@@ -1,3 +1,5 @@
+import { Kysely } from "kysely";
+import { WebSocket } from "ws";
 import {
   FastifyInstance,
   FastifyBaseLogger,
@@ -6,10 +8,10 @@ import {
   RawServerDefault,
 } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Kysely } from "kysely";
 
 import { Database } from "./database";
 import { TokenPayload } from "./services";
+import { TConversation, TMessage, TUser } from "./schema";
 
 declare module "fastify" {
   export interface FastifyRequest {
@@ -27,6 +29,7 @@ export type FastifyTypebox = FastifyInstance<
 
 export interface ControllerOptions {
   db: Kysely<Database>;
+  sendEvent: (recipientIds: string[], event: ClientEvent) => void;
 }
 
 export type WithCreatedByUsername<T> = T & {
@@ -36,3 +39,34 @@ export type WithCreatedByUsername<T> = T & {
 export type WithUsername<T> = T & {
   username: string;
 };
+
+export interface ClientConnection {
+  userId: string;
+  socket: WebSocket;
+}
+
+export interface NewConversationEvent {
+  type: "conversation";
+  payload: TConversation;
+}
+
+export interface NewMessageEvent {
+  type: "message";
+  payload: TMessage;
+}
+
+export interface RecipientAddedEvent {
+  type: "recipient/added";
+  payload: TUser;
+}
+
+export interface RecipientRemovedEvent {
+  type: "recipient/removed";
+  payload: TUser;
+}
+
+export type ClientEvent =
+  | NewConversationEvent
+  | NewMessageEvent
+  | RecipientAddedEvent
+  | RecipientRemovedEvent;
