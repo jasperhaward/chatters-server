@@ -29,7 +29,7 @@ import {
   DeleteConversationRecipientSchema,
 } from "./conversationsSchema";
 
-export default async function conversations(
+export default async function conversationsController(
   fastify: FastifyTypebox,
   options: ControllerOptions
 ) {

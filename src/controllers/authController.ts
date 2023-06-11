@@ -11,7 +11,7 @@ import {
 import { BadRequestError, UnauthorisedError } from "../errors";
 import { RegisterSchema, LoginSchema } from "./authSchema";
 
-export default async function auth(
+export default async function authController(
   fastify: FastifyTypebox,
   options: ControllerOptions
 ) {

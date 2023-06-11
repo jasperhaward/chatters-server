@@ -4,7 +4,7 @@ import authentication from "../hooks/authentication";
 import { findUsers } from "../stores";
 import { GetContactsSchema } from "./contactsSchema";
 
-export default async function contacts(
+export default async function contactsController(
   fastify: FastifyTypebox,
   options: ControllerOptions
 ) {
