@@ -59,6 +59,8 @@ export default class App {
 
   async start() {
     await this.fastify.listen({ port: this.config.port });
+    // verify DB connection
+    await this.db.connection().execute(async () => null);
   }
 
   async stop() {
