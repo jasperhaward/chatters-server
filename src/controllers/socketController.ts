@@ -1,4 +1,5 @@
 import { Kysely } from "kysely";
+
 import authentication from "../hooks/authentication";
 import { Database } from "../database";
 import { FastifyTypebox, ClientConnection } from "../types";
@@ -8,7 +9,7 @@ export interface SocketControllerOptions {
   connections: ClientConnection[];
 }
 
-export default async function socket(
+export default async function socketController(
   fastify: FastifyTypebox,
   options: SocketControllerOptions
 ) {
