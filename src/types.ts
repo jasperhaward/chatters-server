@@ -45,12 +45,12 @@ export interface ClientConnection {
   socket: WebSocket;
 }
 
-export interface NewConversationEvent {
+export interface ConversationCreatedEvent {
   type: "conversation";
   payload: TConversation;
 }
 
-export interface NewMessageEvent {
+export interface MessageCreatedEvent {
   type: "message";
   payload: TMessage;
 }
@@ -66,7 +66,7 @@ export interface RecipientRemovedEvent {
 }
 
 export type ClientEvent =
-  | NewConversationEvent
-  | NewMessageEvent
+  | ConversationCreatedEvent
+  | MessageCreatedEvent
   | RecipientAddedEvent
   | RecipientRemovedEvent;
