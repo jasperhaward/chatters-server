@@ -1,5 +1,5 @@
 import { FastifyTypebox, ControllerOptions } from "../types";
-import authentication from "../hooks/authentication";
+import authentication from "../hooks/authenticationHook";
 
 import { findUsers } from "../stores";
 import { GetContactsSchema } from "./contactsSchema";
