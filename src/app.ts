@@ -9,8 +9,9 @@ import { Database } from "./database";
 import { FastifyTypebox, ClientConnection, ClientEvent } from "./types";
 
 import authController from "./controllers/authController";
-import conversationsController from "./controllers/conversationsController";
 import contactsController from "./controllers/contactsController";
+import conversationsController from "./controllers/conversationsController";
+import indexController from "./controllers/indexController";
 import socketController from "./controllers/socketController";
 
 export default class App {
@@ -35,18 +36,19 @@ export default class App {
     this.fastify.register(cors);
     this.fastify.register(websocket);
 
+    this.fastify.register(indexController, { prefix: "/" });
     this.fastify.register(authController, {
       prefix: "/api/v1/auth",
       db: this.db,
       sendEvent: this.sendEvent,
     });
-    this.fastify.register(conversationsController, {
-      prefix: "/api/v1/conversations",
+    this.fastify.register(contactsController, {
+      prefix: "/api/v1/contacts",
       db: this.db,
       sendEvent: this.sendEvent,
     });
-    this.fastify.register(contactsController, {
-      prefix: "/api/v1/contacts",
+    this.fastify.register(conversationsController, {
+      prefix: "/api/v1/conversations",
       db: this.db,
       sendEvent: this.sendEvent,
     });
