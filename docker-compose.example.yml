@@ -1,7 +1,7 @@
-version: "1"
+version: "3.8"
 services:
   chatters:
-    image: chatters:v1
+    image: jasperhaward/chatters-server:latest
     environment:
       - PORT=8080
       - HOST=0.0.0.0

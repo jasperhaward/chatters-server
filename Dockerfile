@@ -1,6 +1,6 @@
 FROM node:20
 
-WORKDIR /usr/src/chatters
+WORKDIR /usr/src/chatters-server
 
 COPY package*.json ./
 RUN npm install
