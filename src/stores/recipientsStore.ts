@@ -2,9 +2,12 @@ import { Kysely } from "kysely";
 
 import { Database, RecipientRow } from "../database";
 import { TUser } from "../schema";
-import { WithUsername } from "../types";
 
-export function toRecipientSchema(row: WithUsername<RecipientRow>): TUser {
+export interface RecipientRowWithUsername extends RecipientRow {
+  username: string;
+}
+
+export function toRecipientSchema(row: RecipientRowWithUsername): TUser {
   return {
     id: row.user_id,
     username: row.username,

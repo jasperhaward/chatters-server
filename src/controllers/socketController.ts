@@ -1,6 +1,6 @@
 import { Kysely } from "kysely";
 
-import authentication from "../hooks/authentication";
+import authentication from "../hooks/authenticationHook";
 import { Database } from "../database";
 import { FastifyTypebox, ClientConnection } from "../types";
 
@@ -18,8 +18,8 @@ export default async function socketController(
   fastify.get(
     "/",
     {
-      preHandler: authentication(db),
       websocket: true,
+      onRequest: authentication(db),
     },
     (connection, request) => {
       const { userId } = request.token;
@@ -32,7 +32,7 @@ export default async function socketController(
 
       connections.push(clientConnection);
 
-      connection.socket.on("close", () => {
+      socket.on("close", () => {
         connections.splice(connections.indexOf(clientConnection), 1);
       });
     }

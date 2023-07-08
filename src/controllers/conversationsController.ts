@@ -1,5 +1,5 @@
 import { FastifyTypebox, ControllerOptions } from "../types";
-import authentication from "../hooks/authentication";
+import authentication from "../hooks/authenticationHook";
 
 import { TConversation } from "../schema";
 import { BadRequestError } from "../errors";
@@ -38,8 +38,8 @@ export default async function conversationsController(
   fastify.get(
     "/",
     {
-      preHandler: authentication(db),
       schema: GetConversationsSchema,
+      onRequest: authentication(db),
     },
     async (request) => {
       const { userId } = request.token;
@@ -70,8 +70,8 @@ export default async function conversationsController(
   fastify.post(
     "/",
     {
-      preHandler: authentication(db),
       schema: CreateConversationSchema,
+      onRequest: authentication(db),
     },
     async (request, reply) => {
       const { userId } = request.token;
@@ -133,8 +133,8 @@ export default async function conversationsController(
   fastify.post(
     "/:conversationId/messages",
     {
-      preHandler: authentication(db),
       schema: CreateConversationMessageSchema,
+      onRequest: authentication(db),
     },
     async (request, reply) => {
       const { userId } = request.token;
@@ -186,8 +186,8 @@ export default async function conversationsController(
   fastify.post(
     "/:conversationId/recipients",
     {
-      preHandler: authentication(db),
       schema: CreateConversationRecipientSchema,
+      onRequest: authentication(db),
     },
     async (request, reply) => {
       const { userId } = request.token;
@@ -245,8 +245,8 @@ export default async function conversationsController(
   fastify.delete(
     "/:conversationId/recipients",
     {
-      preHandler: authentication(db),
       schema: DeleteConversationRecipientSchema,
+      onRequest: authentication(db),
     },
     async (request) => {
       const { userId } = request.token;

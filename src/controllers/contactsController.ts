@@ -13,8 +13,8 @@ export default async function contactsController(
   fastify.get(
     "/",
     {
-      preHandler: authentication(db),
       schema: GetContactsSchema,
+      onRequest: authentication(db),
     },
     async (request) => {
       const { userId } = request.token;

@@ -1,5 +1,5 @@
-import { preHandlerHookHandler } from "fastify";
 import { Kysely } from "kysely";
+import { onRequestHookHandler } from "fastify";
 
 import { Database } from "../database";
 import {
@@ -8,14 +8,17 @@ import {
   validateToken,
 } from "../services";
 import { UnauthorisedError } from "../errors";
+import { RawFastifyRequest } from "../types";
 
 export default function authentication(
   db: Kysely<Database>
-): preHandlerHookHandler {
+): onRequestHookHandler {
   return async (request) => {
-    const { authorization } = request.headers;
+    const { headers, query } = request as RawFastifyRequest;
 
-    if (!authorization) {
+    const authorization = headers.authorization || query.authorization;
+
+    if (!authorization || typeof authorization !== "string") {
       throw new UnauthorisedError();
     }
 

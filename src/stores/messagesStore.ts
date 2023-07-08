@@ -1,12 +1,13 @@
 import { Kysely } from "kysely";
 
-import { WithCreatedByUsername } from "../types";
 import { Database, MessageRow } from "../database";
 import { TMessage } from "../schema";
 
-export function toMessageSchema(
-  row: WithCreatedByUsername<MessageRow>
-): TMessage {
+export interface MessageRowWithCreatedBy extends MessageRow {
+  created_by_username: string;
+}
+
+export function toMessageSchema(row: MessageRowWithCreatedBy): TMessage {
   return {
     id: row.id,
     conversationId: row.conversation_id,

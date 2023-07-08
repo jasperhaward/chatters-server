@@ -1,11 +1,14 @@
 import { Kysely, sql } from "kysely";
 
-import { WithCreatedByUsername } from "../types";
 import { Database, ConversationRow } from "../database";
 import { TBaseConversation } from "../schema";
 
+export interface ConversationRowWithCreatedBy extends ConversationRow {
+  created_by_username: string;
+}
+
 export function toConversationSchema(
-  row: WithCreatedByUsername<ConversationRow>
+  row: ConversationRowWithCreatedBy
 ): TBaseConversation {
   return {
     id: row.conversation_id,

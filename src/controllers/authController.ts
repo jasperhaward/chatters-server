@@ -1,5 +1,5 @@
 import { FastifyTypebox, ControllerOptions } from "../types";
-import authentication from "../hooks/authentication";
+import authentication from "../hooks/authenticationHook";
 
 import { encryptPassword, verifyPassword, generateToken } from "../services";
 import {
@@ -64,7 +64,7 @@ export default async function authController(
 
   fastify.post(
     "/logout",
-    { preHandler: authentication(db) },
+    { onRequest: authentication(db) },
     async (request, reply) => {
       const { token } = request;
 
