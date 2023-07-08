@@ -2,7 +2,7 @@
   "name": "chatters-server",
   "version": "1.0.0",
   "scripts": {
-    "dev": "nodemon --watch src --watch .env --exec npx ts-node index.ts",
+    "dev": "nodemon --watch src --watch .env --exec npx ts-node src/index.ts",
     "start": "node dist/src/index.js",
     "build": "rm -rf dist && tsc"
   },
