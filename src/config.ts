@@ -4,6 +4,7 @@ import { parseEnv } from "./utils";
 
 export interface Config {
   port: number;
+  host: string;
   database: PoolConfig;
   authTokenSecret: string;
   authTokenExpiryDuration: number;
@@ -20,6 +21,7 @@ export interface Config {
 
 const config: Readonly<Config> = {
   port: parseEnv("PORT", "number", 3001),
+  host: parseEnv("HOST", "string", "localhost"),
   database: {
     host: parseEnv("POSTGRES_HOST", "string"),
     port: parseEnv("POSTGRES_PORT", "number"),
