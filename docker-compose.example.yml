@@ -1,0 +1,15 @@
+version: "1"
+services:
+  chatters:
+    image: chatters:v1
+    environment:
+      - PORT=8080
+      - HOST=0.0.0.0
+      - AUTH_TOKEN_SECRET=
+      - POSTGRES_HOST=
+      - POSTGRES_PORT=
+      - POSTGRES_USER=
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DATABASE=
+    ports:
+      - "3001:8080"
