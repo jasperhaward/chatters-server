@@ -2,30 +2,29 @@
   "name": "chatters-server",
   "version": "1.0.0",
   "scripts": {
-    "dev": "nodemon --watch src --watch types --watch .env --exec ts-node src/index.ts",
+    "dev": "nodemon --watch src --watch types --watch .env --exec npx ts-node src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc"
   },
   "dependencies": {
-    "@fastify/cors": "^8.2.0",
+    "@fastify/cors": "^8.3.0",
     "@fastify/websocket": "^8.1.0",
-    "@sinclair/typebox": "^0.25.21",
-    "dotenv": "^16.0.3",
-    "fastify": "^4.18.0",
-    "jsonwebtoken": "^9.0.0",
-    "kysely": "^0.23.4",
-    "pg": "^8.8.0"
+    "@sinclair/typebox": "^0.25.24",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.19.2",
+    "jsonwebtoken": "^9.0.1",
+    "kysely": "^0.23.5",
+    "pg": "^8.11.1"
   },
   "devDependencies": {
     "@fastify/type-provider-typebox": "^2.4.0",
     "@types/cors": "^2.8.13",
-    "@types/jsonwebtoken": "^9.0.1",
-    "@types/node": "^20.2.3",
-    "@types/pg": "^8.6.6",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/node": "^20.4.1",
+    "@types/pg": "^8.10.2",
     "@types/ws": "^8.5.5",
-    "nodemon": "^2.0.20",
+    "nodemon": "^1.19.4",
     "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.1.1",
-    "typescript": "^4.9.4"
+    "typescript": "^5.1.6"
   }
 }
