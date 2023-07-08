@@ -9,6 +9,7 @@ import {
 } from "../services";
 import { UnauthorisedError } from "../errors";
 import { RawFastifyRequest } from "../types";
+import "./authenticationTypes";
 
 export default function authentication(
   db: Kysely<Database>
