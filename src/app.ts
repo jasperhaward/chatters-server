@@ -64,7 +64,7 @@ export default class App {
       port: this.config.port,
       host: this.config.host,
     });
-    // verify DB connection
+    // verify DB connection & DB user permissions
     await this.db.selectFrom("user_account").execute();
   }
 
