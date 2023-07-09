@@ -65,7 +65,7 @@ export default class App {
       host: this.config.host,
     });
     // verify DB connection
-    await this.db.connection().execute(async () => null);
+    await this.db.selectFrom("user_account").execute();
   }
 
   async stop() {
