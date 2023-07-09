@@ -1,4 +1,3 @@
-import { ParsedUrlQuery } from "querystring";
 import { WebSocket } from "ws";
 import { Kysely } from "kysely";
 import {
@@ -7,7 +6,6 @@ import {
   RawReplyDefaultExpression,
   RawRequestDefaultExpression,
   RawServerDefault,
-  FastifyRequest,
 } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
@@ -21,19 +19,6 @@ export type FastifyTypebox = FastifyInstance<
   FastifyBaseLogger,
   TypeBoxTypeProvider
 >;
-
-/**
- * Types a request's raw properties. Useful in cases where we can't use a schema and type
- * provider to type the request, such as in a hook.
- *
- * For example, when not using a schema and type provider the default type for `request.query`
- * is `unknown` despite it being parsed and provided as an object to certain hooks and
- * request handlers. As such `RawFastifyRequest` types `request.query` as `ParsedUrlQuery`,
- * the type of the result from parsing the query parameters using `querystring`.
- */
-export type RawFastifyRequest = FastifyRequest<{
-  Querystring: ParsedUrlQuery;
-}>;
 
 export interface ConversationCreatedEvent {
   type: "conversation";

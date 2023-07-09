@@ -18,11 +18,11 @@ export default class App {
   config: Config;
   fastify: FastifyTypebox;
   db: Kysely<Database>;
-  connections: ClientConnection[];
+  clientConnections: ClientConnection[];
 
   constructor(config: Config) {
     this.config = config;
-    this.connections = [];
+    this.clientConnections = [];
 
     this.db = new Kysely<Database>({
       dialect: new PostgresDialect({
@@ -55,7 +55,7 @@ export default class App {
     this.fastify.register(socketController, {
       prefix: "/api/v1/socket",
       db: this.db,
-      connections: this.connections,
+      clientConnections: this.clientConnections,
     });
   }
 
@@ -74,7 +74,7 @@ export default class App {
   }
 
   sendEvent = (recipientIds: string[], event: ClientEvent) => {
-    for (const connection of this.connections) {
+    for (const connection of this.clientConnections) {
       if (recipientIds.includes(connection.userId)) {
         connection.socket.send(JSON.stringify(event));
       }

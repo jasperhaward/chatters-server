@@ -1,40 +1,70 @@
 import { Kysely } from "kysely";
 
-import authentication from "../hooks/authenticationHook";
 import { Database } from "../database";
 import { FastifyTypebox, ClientConnection } from "../types";
+import {
+  ExpiredAuthTokenError,
+  InvalidAuthTokenError,
+  validateToken,
+  parseTokenScheme,
+} from "../services";
+import { UnauthorisedError } from "../errors";
 
 export interface SocketControllerOptions {
   db: Kysely<Database>;
-  connections: ClientConnection[];
+  clientConnections: ClientConnection[];
 }
 
 export default async function socketController(
   fastify: FastifyTypebox,
   options: SocketControllerOptions
 ) {
-  const { db, connections } = options;
+  const { db, clientConnections } = options;
 
-  fastify.get(
-    "/",
-    {
-      websocket: true,
-      onRequest: authentication(db),
-    },
-    (connection, request) => {
-      const { userId } = request.token;
-      const { socket } = connection;
+  fastify.get("/", { websocket: true }, (connection, request) => {
+    const { socket } = connection;
 
-      const clientConnection: ClientConnection = {
-        userId,
-        socket,
-      };
+    socket.on("message", async (data) => {
+      try {
+        const token = parseTokenScheme(`${data}`);
 
-      connections.push(clientConnection);
+        const { userId } = await validateToken(db, token);
 
-      socket.on("close", () => {
-        connections.splice(connections.indexOf(clientConnection), 1);
+        const clientConnection: ClientConnection = {
+          userId,
+          socket,
+        };
+
+        clientConnections.push(clientConnection);
+      } catch (error) {
+        if (
+          error instanceof InvalidAuthTokenError ||
+          error instanceof ExpiredAuthTokenError
+        ) {
+          socket.send(JSON.stringify(new UnauthorisedError()));
+        } else {
+          socket.send(JSON.stringify(error));
+        }
+
+        connection.destroy();
+        request.log.error(error);
+      }
+    });
+
+    socket.on("close", () => {
+      const connectionIndex = clientConnections.findIndex((connection) => {
+        return connection.socket === socket;
       });
-    }
-  );
+
+      // the current connection/socket may not be in the array of `clientConnections` if
+      // the connection has yet to be authenticated or failed to authenticate
+      const isExistingClientConnection = connectionIndex > -1;
+
+      if (isExistingClientConnection) {
+        clientConnections.splice(connectionIndex, 1);
+      }
+    });
+
+    socket.on("error", request.log.error);
+  });
 }

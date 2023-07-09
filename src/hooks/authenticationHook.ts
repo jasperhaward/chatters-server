@@ -6,24 +6,22 @@ import {
   ExpiredAuthTokenError,
   InvalidAuthTokenError,
   validateToken,
+  parseTokenScheme,
 } from "../services";
 import { UnauthorisedError } from "../errors";
-import { RawFastifyRequest } from "../types";
 import "./authenticationTypes";
 
 export default function authentication(
   db: Kysely<Database>
 ): onRequestHookHandler {
   return async (request) => {
-    const { headers, query } = request as RawFastifyRequest;
+    const authorization = request.headers.authorization;
 
-    const authorization = headers.authorization || query.authorization;
-
-    if (!authorization || typeof authorization !== "string") {
+    if (!authorization) {
       throw new UnauthorisedError();
     }
 
-    const token = authorization.substring("Bearer ".length);
+    const token = parseTokenScheme(authorization);
 
     try {
       request.token = await validateToken(db, token);
