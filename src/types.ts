@@ -21,12 +21,12 @@ export type FastifyTypebox = FastifyInstance<
 >;
 
 export interface ConversationCreatedEvent {
-  type: "conversation";
+  type: "conversation/created";
   payload: TConversation;
 }
 
 export interface MessageCreatedEvent {
-  type: "message";
+  type: "message/created";
   payload: TMessage;
 }
 

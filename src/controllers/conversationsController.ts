@@ -122,7 +122,7 @@ export default async function conversationsController(
       reply.code(201);
 
       sendEvent(sanitisedRecipientIds, {
-        type: "conversation",
+        type: "conversation/created",
         payload: conversation,
       });
 
@@ -175,7 +175,7 @@ export default async function conversationsController(
         .filter((recipientId) => recipientId !== userId);
 
       sendEvent(eventRecipientIds, {
-        type: "message",
+        type: "message/created",
         payload: message,
       });
 
