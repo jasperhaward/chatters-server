@@ -6,6 +6,7 @@ export const IndexSchema = {
     "2xx": Type.Object({
       name: Type.String(),
       version: Type.String(),
+      environment: Type.String(),
     }),
   },
 } satisfies FastifySchema;

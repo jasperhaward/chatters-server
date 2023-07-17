@@ -3,6 +3,7 @@ import { PoolConfig } from "pg";
 import { parseEnv } from "./utils";
 
 export interface Config {
+  environment: string;
   port: number;
   host: string;
   database: PoolConfig;
@@ -20,8 +21,9 @@ export interface Config {
 }
 
 const config: Readonly<Config> = {
-  port: parseEnv("PORT", "number", 3001),
+  environment: parseEnv("ENVIRONMENT", "string"),
   host: parseEnv("HOST", "string", "localhost"),
+  port: parseEnv("PORT", "number", 3001),
   database: {
     host: parseEnv("POSTGRES_HOST", "string"),
     port: parseEnv("POSTGRES_PORT", "number"),
