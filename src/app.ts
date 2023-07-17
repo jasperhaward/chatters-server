@@ -60,12 +60,12 @@ export default class App {
   }
 
   async start() {
+    // verify DB connection & DB user permissions
+    await this.db.selectFrom("user_account").execute();
     await this.fastify.listen({
       port: this.config.port,
       host: this.config.host,
     });
-    // verify DB connection & DB user permissions
-    await this.db.selectFrom("user_account").execute();
   }
 
   async stop() {
