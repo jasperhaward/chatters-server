@@ -1,8 +1,8 @@
 {
   "name": "chatters-server",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "scripts": {
-    "dev": "nodemon --watch src --watch .env --exec npx ts-node src/index.ts",
+    "dev": "node -r ts-node/register --watch src/index.ts",
     "start": "node dist/src/index.js",
     "build": "rm -rf dist && tsc"
   },
@@ -23,7 +23,6 @@
     "@types/node": "^20.4.1",
     "@types/pg": "^8.10.2",
     "@types/ws": "^8.5.5",
-    "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   }
