@@ -37,22 +37,6 @@ export function isRecipientInConversation(
   return !!recipients.find((recipient) => recipient.id === recipientId);
 }
 
-// May be needed in the future
-export async function findConversationsByRecipientIds(
-  db: Kysely<Database>,
-  recipientIds: string[]
-) {
-  const { count } = db.fn;
-
-  return await db
-    .selectFrom("conversation_recipient")
-    .select("conversation_id")
-    .where("user_id", "in", recipientIds)
-    .groupBy("conversation_id")
-    .having(count("user_id"), "=", recipientIds.length)
-    .execute();
-}
-
 export interface InsertRecipientsParams {
   conversationId: string;
   recipientIds: string[];
