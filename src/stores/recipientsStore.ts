@@ -1,6 +1,6 @@
 import { Kysely } from "kysely";
 
-import { Database, RecipientRow } from "../database";
+import { Database, InsertableRecipientRow, RecipientRow } from "../database";
 import { TUser } from "../schema";
 
 export interface RecipientRowWithUsername extends RecipientRow {
@@ -37,38 +37,6 @@ export function isRecipientInConversation(
   return !!recipients.find((recipient) => recipient.id === recipientId);
 }
 
-export interface InsertRecipientsParams {
-  conversationId: string;
-  recipientIds: string[];
-}
-
-export async function insertRecipients(
-  db: Kysely<Database>,
-  params: InsertRecipientsParams
-): Promise<TUser[]> {
-  const { conversationId, recipientIds } = params;
-
-  const rows = await db
-    .with("r", (db) =>
-      db
-        .insertInto("conversation_recipient")
-        .values(
-          recipientIds.map((recipientId) => ({
-            conversation_id: conversationId,
-            user_id: recipientId,
-          }))
-        )
-        .returningAll()
-    )
-    .selectFrom("r")
-    .innerJoin("user_account as u", "u.user_id", "r.user_id")
-    .selectAll("r")
-    .select("u.username")
-    .execute();
-
-  return rows.map(toRecipientSchema);
-}
-
 export interface DeleteRecipientParams {
   conversationId: string;
   recipientId: string;
@@ -85,4 +53,37 @@ export async function deleteRecipient(
     .where("conversation_id", "=", conversationId)
     .where("user_id", "=", recipientId)
     .execute();
+}
+
+export interface InsertRecipientsParams {
+  conversationId: string;
+  recipientIds: string[];
+}
+
+export async function insertRecipients(
+  db: Kysely<Database>,
+  params: InsertRecipientsParams
+): Promise<TUser[]> {
+  const { conversationId, recipientIds } = params;
+
+  const values = recipientIds.map<InsertableRecipientRow>((recipientId) => ({
+    conversation_id: conversationId,
+    user_id: recipientId,
+  }));
+
+  const rows = await db
+    .with("r", (db) =>
+      // prettier-ignore
+      db
+        .insertInto("conversation_recipient")
+        .values(values)
+        .returningAll()
+    )
+    .selectFrom("r")
+    .innerJoin("user_account as u", "u.user_id", "r.user_id")
+    .selectAll("r")
+    .select("u.username")
+    .execute();
+
+  return rows.map(toRecipientSchema);
 }

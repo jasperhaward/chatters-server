@@ -1,16 +1,19 @@
 import { Kysely } from "kysely";
 
-import { Database, UserRow } from "../database";
-import { TUser, TUserWithCreatedAt, TUserWithPassword } from "../schema";
+import { Database, InsertableUserRow, UserRow } from "../database";
+import { TUserWithCreatedAt, TUserWithPassword } from "../schema";
 
-export function toUserSchema(row: UserRow): TUser {
+export function toUserSchema(row: UserRow): TUserWithCreatedAt {
   return {
     id: row.user_id,
     username: row.username,
+    createdAt: row.created_at,
   };
 }
 
-export async function findUsers(db: Kysely<Database>): Promise<TUser[]> {
+export async function findUsers(
+  db: Kysely<Database>
+): Promise<TUserWithCreatedAt[]> {
   // prettier-ignore
   const rows = await db
     .selectFrom("user_account")
@@ -23,7 +26,7 @@ export async function findUsers(db: Kysely<Database>): Promise<TUser[]> {
 export async function findUsersByUserIds(
   db: Kysely<Database>,
   userIds: string[]
-): Promise<TUser[]> {
+): Promise<TUserWithCreatedAt[]> {
   const rows = await db
     .selectFrom("user_account")
     .selectAll()
@@ -49,7 +52,6 @@ export async function findUserByUsername(
 
   return {
     ...toUserSchema(row),
-    createdAt: row.created_at,
     password: row.password,
   };
 }
@@ -57,7 +59,7 @@ export async function findUserByUsername(
 export async function findUserByUserId(
   db: Kysely<Database>,
   userId: string
-): Promise<TUser | null> {
+): Promise<TUserWithCreatedAt | null> {
   const row = await db
     .selectFrom("user_account")
     .selectAll()
@@ -80,17 +82,16 @@ export async function insertUser(
   db: Kysely<Database>,
   params: InsertUserParams
 ): Promise<TUserWithCreatedAt> {
+  const values: InsertableUserRow = {
+    username: params.username,
+    password: params.hashedPassword,
+  };
+
   const row = await db
     .insertInto("user_account")
-    .values({
-      username: params.username,
-      password: params.hashedPassword,
-    })
+    .values(values)
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  return {
-    ...toUserSchema(row),
-    createdAt: row.created_at,
-  };
+  return toUserSchema(row);
 }

@@ -1,6 +1,6 @@
 import { Kysely } from "kysely";
 
-import { Database, TokenRow } from "../database";
+import { Database, InsertableTokenRow, TokenRow } from "../database";
 import { TokenPayload } from "../services";
 
 export function toTokenPayload(row: TokenRow): TokenPayload {
@@ -9,19 +9,6 @@ export function toTokenPayload(row: TokenRow): TokenPayload {
     tokenId: row.token_id,
     userId: row.user_id,
   };
-}
-
-export async function insertToken(
-  db: Kysely<Database>,
-  userId: string
-): Promise<TokenPayload> {
-  const row = await db
-    .insertInto("user_token")
-    .values({ user_id: userId })
-    .returningAll()
-    .executeTakeFirstOrThrow();
-
-  return toTokenPayload(row);
 }
 
 export async function findTokenByTokenId(
@@ -50,4 +37,21 @@ export async function deleteTokenByTokenId(
     .deleteFrom("user_token")
     .where("token_id", "=", tokenId)
     .execute();
+}
+
+export async function insertToken(
+  db: Kysely<Database>,
+  userId: string
+): Promise<TokenPayload> {
+  const values: InsertableTokenRow = {
+    user_id: userId,
+  };
+
+  const row = await db
+    .insertInto("user_token")
+    .values(values)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  return toTokenPayload(row);
 }

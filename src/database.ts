@@ -1,4 +1,4 @@
-import { GeneratedAlways, Selectable } from "kysely";
+import { GeneratedAlways, Insertable, Selectable } from "kysely";
 
 export interface UserTable {
   user_id: GeneratedAlways<string>;
@@ -8,6 +8,7 @@ export interface UserTable {
 }
 
 export type UserRow = Selectable<UserTable>;
+export type InsertableUserRow = Insertable<UserTable>;
 
 export interface TokenTable {
   token_id: GeneratedAlways<string>;
@@ -16,6 +17,7 @@ export interface TokenTable {
 }
 
 export type TokenRow = Selectable<TokenTable>;
+export type InsertableTokenRow = Insertable<TokenTable>;
 
 export interface ConversationTable {
   conversation_id: GeneratedAlways<string>;
@@ -25,6 +27,7 @@ export interface ConversationTable {
 }
 
 export type ConversationRow = Selectable<ConversationTable>;
+export type InsertableConversationRow = Insertable<ConversationTable>;
 
 export interface MessageTable {
   id: GeneratedAlways<string>;
@@ -35,6 +38,7 @@ export interface MessageTable {
 }
 
 export type MessageRow = Selectable<MessageTable>;
+export type InsertableMessageRow = Insertable<MessageTable>;
 
 export interface RecipientTable {
   id: GeneratedAlways<string>;
@@ -44,6 +48,7 @@ export interface RecipientTable {
 }
 
 export type RecipientRow = Selectable<RecipientTable>;
+export type InsertableRecipientRow = Insertable<RecipientTable>;
 
 export interface Database {
   user_account: UserTable;

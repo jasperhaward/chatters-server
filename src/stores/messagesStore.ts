@@ -1,6 +1,6 @@
 import { Kysely } from "kysely";
 
-import { Database, MessageRow } from "../database";
+import { Database, InsertableMessageRow, MessageRow } from "../database";
 import { TMessage } from "../schema";
 
 export interface MessageRowWithCreatedBy extends MessageRow {
@@ -46,15 +46,18 @@ export async function insertMessage(
   db: Kysely<Database>,
   params: InsertMessageParams
 ): Promise<TMessage> {
+  const values: InsertableMessageRow = {
+    conversation_id: params.conversationId,
+    created_by: params.createdBy,
+    content: params.content,
+  };
+
   const row = await db
     .with("m", (db) =>
+      // prettier-ignore
       db
         .insertInto("conversation_message")
-        .values({
-          conversation_id: params.conversationId,
-          created_by: params.createdBy,
-          content: params.content,
-        })
+        .values(values)
         .returningAll()
     )
     .selectFrom("m")
