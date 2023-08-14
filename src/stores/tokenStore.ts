@@ -15,30 +15,30 @@ export async function insertToken(
   db: Kysely<Database>,
   userId: string
 ): Promise<TokenPayload> {
-  const token = await db
+  const row = await db
     .insertInto("user_token")
     .values({ user_id: userId })
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  return toTokenPayload(token);
+  return toTokenPayload(row);
 }
 
 export async function findTokenByTokenId(
   db: Kysely<Database>,
   tokenId: string
 ): Promise<TokenPayload | null> {
-  const token = await db
+  const row = await db
     .selectFrom("user_token")
     .selectAll()
     .where("token_id", "=", tokenId)
     .executeTakeFirst();
 
-  if (!token) {
+  if (!row) {
     return null;
   }
 
-  return toTokenPayload(token);
+  return toTokenPayload(row);
 }
 
 export async function deleteTokenByTokenId(

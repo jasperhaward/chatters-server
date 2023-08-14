@@ -12,45 +12,45 @@ export function toUserSchema(row: UserRow): TUser {
 
 export async function findUsers(db: Kysely<Database>): Promise<TUser[]> {
   // prettier-ignore
-  const users = await db
+  const rows = await db
     .selectFrom("user_account")
     .selectAll()
     .execute();
 
-  return users.map(toUserSchema);
+  return rows.map(toUserSchema);
 }
 
 export async function findUsersByUserIds(
   db: Kysely<Database>,
   userIds: string[]
 ): Promise<TUser[]> {
-  const users = await db
+  const rows = await db
     .selectFrom("user_account")
     .selectAll()
     .where("user_id", "in", userIds)
     .execute();
 
-  return users.map(toUserSchema);
+  return rows.map(toUserSchema);
 }
 
 export async function findUserByUsername(
   db: Kysely<Database>,
   username: string
 ): Promise<TUserWithPassword | null> {
-  const user = await db
+  const row = await db
     .selectFrom("user_account")
     .selectAll()
     .where("username", "=", username)
     .executeTakeFirst();
 
-  if (!user) {
+  if (!row) {
     return null;
   }
 
   return {
-    ...toUserSchema(user),
-    createdAt: user.created_at,
-    password: user.password,
+    ...toUserSchema(row),
+    createdAt: row.created_at,
+    password: row.password,
   };
 }
 
@@ -58,17 +58,17 @@ export async function findUserByUserId(
   db: Kysely<Database>,
   userId: string
 ): Promise<TUser | null> {
-  const user = await db
+  const row = await db
     .selectFrom("user_account")
     .selectAll()
     .where("user_id", "=", userId)
     .executeTakeFirst();
 
-  if (!user) {
+  if (!row) {
     return null;
   }
 
-  return toUserSchema(user);
+  return toUserSchema(row);
 }
 
 export interface InsertUserParams {
@@ -80,7 +80,7 @@ export async function insertUser(
   db: Kysely<Database>,
   params: InsertUserParams
 ): Promise<TUserWithCreatedAt> {
-  const user = await db
+  const row = await db
     .insertInto("user_account")
     .values({
       username: params.username,
@@ -90,7 +90,7 @@ export async function insertUser(
     .executeTakeFirstOrThrow();
 
   return {
-    ...toUserSchema(user),
-    createdAt: user.created_at,
+    ...toUserSchema(row),
+    createdAt: row.created_at,
   };
 }

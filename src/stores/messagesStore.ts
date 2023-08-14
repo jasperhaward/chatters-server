@@ -24,7 +24,7 @@ export async function findMessagesByConversationId(
   db: Kysely<Database>,
   conversationId: string
 ): Promise<TMessage[]> {
-  const messages = await db
+  const rows = await db
     .selectFrom("conversation_message as m")
     .innerJoin("user_account as u", "u.user_id", "m.created_by")
     .selectAll("m")
@@ -33,7 +33,7 @@ export async function findMessagesByConversationId(
     .orderBy("m.created_at", "desc")
     .execute();
 
-  return messages.map(toMessageSchema);
+  return rows.map(toMessageSchema);
 }
 
 export interface InsertMessageParams {
@@ -46,7 +46,7 @@ export async function insertMessage(
   db: Kysely<Database>,
   params: InsertMessageParams
 ): Promise<TMessage> {
-  const message = await db
+  const row = await db
     .with("m", (db) =>
       db
         .insertInto("conversation_message")
@@ -63,5 +63,5 @@ export async function insertMessage(
     .select("u.username as created_by_username")
     .executeTakeFirstOrThrow();
 
-  return toMessageSchema(message);
+  return toMessageSchema(row);
 }

@@ -18,7 +18,7 @@ export async function findRecipientsByConversationId(
   db: Kysely<Database>,
   conversationId: string
 ): Promise<TUser[]> {
-  const recipients = await db
+  const rows = await db
     .selectFrom("conversation_recipient as r")
     .innerJoin("user_account as u", "u.user_id", "r.user_id")
     .selectAll("r")
@@ -27,7 +27,7 @@ export async function findRecipientsByConversationId(
     .orderBy("r.created_at")
     .execute();
 
-  return recipients.map(toRecipientSchema);
+  return rows.map(toRecipientSchema);
 }
 
 export function isRecipientInConversation(
@@ -64,7 +64,7 @@ export async function insertRecipients(
 ): Promise<TUser[]> {
   const { conversationId, recipientIds } = params;
 
-  const recipients = await db
+  const rows = await db
     .with("r", (db) =>
       db
         .insertInto("conversation_recipient")
@@ -82,7 +82,7 @@ export async function insertRecipients(
     .select("u.username")
     .execute();
 
-  return recipients.map(toRecipientSchema);
+  return rows.map(toRecipientSchema);
 }
 
 export interface DeleteRecipientParams {
