@@ -8,8 +8,8 @@ export const Conversation = Type.Object({
   createdBy: User,
   title: Type.Union([Type.String(), Type.Null()]),
   recipients: Type.Array(User),
-  messages: Type.Array(Message),
+  latestMessage: Type.Union([Message, Type.Null()]),
 });
 
 export type TConversation = Static<typeof Conversation>;
-export type TBaseConversation = Omit<TConversation, "recipients" | "messages">;
+export type TConversationOmitRecipients = Omit<TConversation, "recipients">;

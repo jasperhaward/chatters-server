@@ -1,15 +1,39 @@
 import { Kysely, sql } from "kysely";
 
-import { Database, ConversationRow } from "../database";
-import { TBaseConversation } from "../schema";
+import {
+  Database,
+  ConversationRow,
+  InsertableConversationRow,
+} from "../database";
+import { TConversationOmitRecipients } from "../schema";
 
-export interface ConversationRowWithCreatedBy extends ConversationRow {
+export interface ConversationRowWithJoins extends ConversationRow {
   created_by_username: string;
+  latest_message_id?: string | null;
+  latest_message_content?: string | null;
+  latest_message_created_at?: string | null;
+  latest_message_created_by?: string | null;
+  latest_message_created_by_username?: string | null;
+}
+
+export interface ConversationRowWithLatestMessage
+  extends ConversationRowWithJoins {
+  latest_message_id: string;
+  latest_message_content: string;
+  latest_message_created_at: string;
+  latest_message_created_by: string;
+  latest_message_created_by_username: string;
+}
+
+export function hasLatestMessage(
+  row: ConversationRowWithJoins
+): row is ConversationRowWithLatestMessage {
+  return !!row.latest_message_id;
 }
 
 export function toConversationSchema(
-  row: ConversationRowWithCreatedBy
-): TBaseConversation {
+  row: ConversationRowWithJoins
+): TConversationOmitRecipients {
   return {
     id: row.conversation_id,
     createdAt: row.created_at,
@@ -18,6 +42,18 @@ export function toConversationSchema(
       username: row.created_by_username,
     },
     title: row.title,
+    latestMessage: hasLatestMessage(row)
+      ? {
+          id: row.latest_message_id,
+          createdAt: row.latest_message_created_at,
+          createdBy: {
+            id: row.latest_message_created_by,
+            username: row.latest_message_created_by_username,
+          },
+          conversationId: row.conversation_id,
+          content: row.latest_message_content,
+        }
+      : null,
   };
 }
 
@@ -32,68 +68,57 @@ export async function isExistingConversation(
     .executeTakeFirst());
 }
 
-/** 
- * Note: orders conversations by latest message (if there is one), 
- * or the conversation created_at timestamp. Query equivalent of:
-  ```sql
-  WITH user_conversation AS (
-      SELECT conversation_id 
-      FROM conversation_recipient 
-      WHERE user_id = 'd2cb5104-8bbc-488b-b323-f4a063e135ee'
-  ), latest_message AS (
-    SELECT MAX(created_at) AS created_at, m.conversation_id 
-    FROM conversation_message AS m 
-    INNER JOIN user_conversation ON user_conversation.conversation_id = m.conversation_id 
-    GROUP BY m.conversation_id
-  )
-  SELECT c.*, u.username AS created_by_username
-  FROM user_conversation AS uc 
-  INNER JOIN conversation AS c 
-    ON c.conversation_id = uc.conversation_id
-  INNER JOIN user_account AS u 
-    ON u.user_id = c.created_by
-  LEFT JOIN latest_message AS lm 
-    ON lm.conversation_id = c.conversation_id
-  ORDER BY GREATEST(lm.created_at, c.created_at) DESC
-  ```
- */
 export async function findConversationsByUserId(
   db: Kysely<Database>,
   userId: string
-): Promise<TBaseConversation[]> {
-  const { max } = db.fn;
-
-  const conversations = await db
+): Promise<TConversationOmitRecipients[]> {
+  const rows = await db
     // conversation ids where the user is a recipient
-    .with("user_conversation", (db) =>
+    .with("user_conversation_id", (db) =>
       db
         .selectFrom("conversation_recipient")
         .select("conversation_id")
         .where("user_id", "=", userId)
     )
-    // most recent message (if there are messages) for each of those conversation ids
+    // most recent message if there is one for each of those conversation ids
     .with("latest_message", (db) =>
       db
-        .selectFrom("conversation_message as m")
+        .selectFrom("user_conversation_id as uc")
         .innerJoin(
-          "user_conversation",
-          "user_conversation.conversation_id",
-          "m.conversation_id"
+          "conversation_message as m",
+          "m.conversation_id",
+          "uc.conversation_id"
         )
-        .select([max("created_at").as("created_at"), "m.conversation_id"])
-        .groupBy("m.conversation_id")
+        .innerJoin("user_account as u", "u.user_id", "m.created_by")
+        .distinctOn("m.conversation_id")
+        .select([
+          "m.id as latest_message_id",
+          "m.conversation_id as latest_message_conversation_id",
+          "m.created_at as latest_message_created_at",
+          "m.created_by as latest_message_created_by",
+          "u.username as latest_message_created_by_username",
+          "m.content as latest_message_content",
+        ])
+        .orderBy("m.conversation_id")
+        .orderBy("m.created_at", "desc")
     )
-    .selectFrom("user_conversation as uc")
+    .selectFrom("user_conversation_id as uc")
     .innerJoin("conversation as c", "c.conversation_id", "uc.conversation_id")
     .innerJoin("user_account as u", "u.user_id", "c.created_by")
-    .leftJoin("latest_message as lm", "lm.conversation_id", "c.conversation_id")
+    .leftJoin(
+      "latest_message as lm",
+      "lm.latest_message_conversation_id",
+      "c.conversation_id"
+    )
     .selectAll("c")
+    .selectAll("lm")
     .select("u.username as created_by_username")
-    // 'lm' may be null (as a conversation may have 0 messages), then order on conversation created_at
-    .orderBy(sql`greatest(lm.created_at, c.created_at)`, "desc")
+    // the latest message may be null as a conversation may have
+    // 0 messages, if so order on conversation created_at
+    .orderBy(sql`greatest(lm.latest_message_created_at, c.created_at)`, "desc")
     .execute();
 
-  return conversations.map(toConversationSchema);
+  return rows.map(toConversationSchema);
 }
 
 export interface InsertConversationParams {
@@ -104,15 +129,18 @@ export interface InsertConversationParams {
 export async function insertConversation(
   db: Kysely<Database>,
   params: InsertConversationParams
-): Promise<TBaseConversation> {
-  const conversation = await db
+): Promise<TConversationOmitRecipients> {
+  const values: InsertableConversationRow = {
+    created_by: params.createdBy,
+    title: params.title,
+  };
+
+  const row = await db
     .with("c", (db) =>
+      // prettier-ignore
       db
         .insertInto("conversation")
-        .values({
-          created_by: params.createdBy,
-          title: params.title,
-        })
+        .values(values)
         .returningAll()
     )
     .selectFrom("c")
@@ -121,5 +149,5 @@ export async function insertConversation(
     .select("u.username as created_by_username")
     .executeTakeFirstOrThrow();
 
-  return toConversationSchema(conversation);
+  return toConversationSchema(row);
 }

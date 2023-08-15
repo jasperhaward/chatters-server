@@ -47,10 +47,6 @@ export default async function conversationsController(
       const conversations: TConversation[] = [];
 
       for (const conversation of await findConversationsByUserId(db, userId)) {
-        const messages = await findMessagesByConversationId(
-          db,
-          conversation.id
-        );
         const recipients = await findRecipientsByConversationId(
           db,
           conversation.id
@@ -59,7 +55,6 @@ export default async function conversationsController(
         conversations.push({
           ...conversation,
           recipients: recipients.filter((recipient) => recipient.id !== userId),
-          messages,
         });
       }
 
@@ -97,27 +92,33 @@ export default async function conversationsController(
         );
       }
 
-      const conversation = await db.transaction().execute(async (trx) => {
-        const conversationParams: InsertConversationParams = {
-          createdBy: userId,
-          title,
-        };
+      const conversation = await db
+        .transaction()
+        .execute<TConversation>(async (trx) => {
+          const conversationParams: InsertConversationParams = {
+            createdBy: userId,
+            title,
+          };
 
-        const conversation = await insertConversation(trx, conversationParams);
+          const conversation = await insertConversation(
+            trx,
+            conversationParams
+          );
 
-        const recipientsParams: InsertRecipientsParams = {
-          conversationId: conversation.id,
-          recipientIds: [userId, ...sanitisedRecipientIds],
-        };
+          const recipientsParams: InsertRecipientsParams = {
+            conversationId: conversation.id,
+            recipientIds: [userId, ...sanitisedRecipientIds],
+          };
 
-        const recipients = await insertRecipients(trx, recipientsParams);
+          const recipients = await insertRecipients(trx, recipientsParams);
 
-        return {
-          ...conversation,
-          recipients: recipients.filter((recipient) => recipient.id !== userId),
-          messages: [],
-        };
-      });
+          return {
+            ...conversation,
+            recipients: recipients.filter(
+              (recipient) => recipient.id !== userId
+            ),
+          };
+        });
 
       reply.code(201);
 
