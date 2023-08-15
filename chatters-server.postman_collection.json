@@ -1,0 +1,303 @@
+{
+	"info": {
+		"_postman_id": "35861db4-2f36-44b6-903c-5c74fed1fa8d",
+		"name": "chatters-server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25799528"
+	},
+	"item": [
+		{
+			"name": "/auth",
+			"item": [
+				{
+					"name": "/register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"Jasper Haward\",\r\n    \"password\": \"Password123\",\r\n    \"confirmPassword\": \"Password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/auth/register",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"Jasper Haward\",\r\n    \"password\": \"Password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/auth/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/v1/auth/logout",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/conversations",
+			"item": [
+				{
+					"name": "/conversations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/v1/conversations",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/converations",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"recipientIds\": [\"b4ad3da9-5271-4ed0-aafc-5be7e26963f8\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/conversations",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"conversations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/conversations/:conversationId/messages",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"Hello Monika\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/conversations/0a48edde-f5de-4fb2-89df-f67d70da388b/messages",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"conversations",
+								"0a48edde-f5de-4fb2-89df-f67d70da388b",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/conversations/:conversationId/recipients",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"recipientId\": \"3bbd2bc5-4972-4116-8e20-bf645314b311\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/conversations/77ad4c91-d8ee-4620-9886-0bc469751615/recipients",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"conversations",
+								"77ad4c91-d8ee-4620-9886-0bc469751615",
+								"recipients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/conversations/:conversationId/recipients",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"recipientId\": \"8882b715-da0f-49bc-b953-50ca267b0b30\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/conversations/552157b4-3211-45f7-9e46-998376838c42/recipients",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"conversations",
+								"552157b4-3211-45f7-9e46-998376838c42",
+								"recipients"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/contacts",
+			"item": [
+				{
+					"name": "/contacts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/v1/contacts",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"contacts"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOiIyMDIzLTA4LTE1VDIyOjU5OjA4LjU5OVoiLCJ0b2tlbklkIjoiNWM2YzAzNTQtOWZiZi00YzRlLTg2NmEtZDhhNWE5NTk5NWE0IiwidXNlcklkIjoiMThkODc3NTAtNWEwMy00NmUxLWIwYTItZjA0NTM3ZjU3Yzk2IiwiaWF0IjoxNjkyMTQwNDQwLCJleHAiOjE2OTIxNDM0NDB9.sO4OhIaqO3ufbacPf2yrT8NbQFtTKG6wDDT9oNYkrRE",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
