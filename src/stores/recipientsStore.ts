@@ -30,6 +30,21 @@ export async function findRecipientsByConversationId(
   return rows.map(toRecipientSchema);
 }
 
+export async function isExistingConversationWithRecipientIds(
+  db: Kysely<Database>,
+  recipientIds: string[]
+) {
+  const { count } = db.fn;
+
+  return !!(await db
+    .selectFrom("conversation_recipient")
+    .select("conversation_id")
+    .where("user_id", "in", recipientIds)
+    .groupBy("conversation_id")
+    .having(count("user_id"), "=", recipientIds.length)
+    .executeTakeFirst());
+}
+
 export function isRecipientInConversation(
   recipients: TUser[],
   recipientId: string

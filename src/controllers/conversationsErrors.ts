@@ -1,5 +1,6 @@
 export type CreateConversationErrorCode =
   | "MinimumRecipientsRequired"
+  | "ExistingDirectConversation"
   | "RecipientNotFound";
 
 export type CreateConversationMessageErrorCode =

@@ -20,6 +20,7 @@ import {
   InsertMessageParams,
   findUserByUserId,
   DeleteRecipientParams,
+  isExistingConversationWithRecipientIds,
 } from "../stores";
 import {
   GetConversationsSchema,
@@ -89,6 +90,20 @@ export default async function conversationsController(
         throw new BadRequestError(
           "RecipientNotFound",
           `user with id from 'recipientIds' not found`
+        );
+      }
+
+      // should not be able to create multiple 'DM' conversations with only 2 recipients
+      if (
+        sanitisedRecipientIds.length === 1 &&
+        (await isExistingConversationWithRecipientIds(db, [
+          userId,
+          ...sanitisedRecipientIds,
+        ]))
+      ) {
+        throw new BadRequestError(
+          "ExistingDirectConversation",
+          `direct conversation between user and 'recipientIds' already exists`
         );
       }
 
