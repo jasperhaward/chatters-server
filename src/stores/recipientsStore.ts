@@ -1,4 +1,4 @@
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 
 import { Database, InsertableRecipientRow, RecipientRow } from "../database";
 import { TUser } from "../schema";
@@ -36,12 +36,18 @@ export async function isExistingConversationWithRecipientIds(
 ) {
   const { count } = db.fn;
 
+  const joinedRecipientIds = sql.join(recipientIds);
+
   return !!(await db
     .selectFrom("conversation_recipient")
     .select("conversation_id")
-    .where("user_id", "in", recipientIds)
     .groupBy("conversation_id")
     .having(count("user_id"), "=", recipientIds.length)
+    .having(
+      sql`sum(case when user_id in (${joinedRecipientIds}) then 0 else 1 end)`,
+      "=",
+      0
+    )
     .executeTakeFirst());
 }
 
