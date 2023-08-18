@@ -305,7 +305,7 @@ export default async function conversationsController(
       schema: DeleteConversationRecipientSchema,
       onRequest: authentication(db),
     },
-    async (request) => {
+    async (request, reply) => {
       const { userId } = request.token;
       const { conversationId } = request.params;
       const { recipientId } = request.body;
@@ -385,7 +385,7 @@ export default async function conversationsController(
         payload: recipient,
       });
 
-      return recipient;
+      reply.code(204);
     }
   );
 }
