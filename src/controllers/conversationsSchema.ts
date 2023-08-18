@@ -25,6 +25,15 @@ export const CreateConversationSchema = {
   },
 } satisfies FastifySchema;
 
+export const GetConversationMessagesSchema = {
+  params: Type.Object({
+    conversationId: Type.String({ format: "uuid" }),
+  }),
+  response: {
+    "2xx": Type.Array(Message),
+  },
+} satisfies FastifySchema;
+
 export const CreateConversationMessageSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),

@@ -3,6 +3,10 @@ export type CreateConversationErrorCode =
   | "ExistingDirectConversation"
   | "RecipientNotFound";
 
+export type GetConversationMessagesErrorCode =
+  | "ConversationNotFound"
+  | "UserNotConversationRecipient";
+
 export type CreateConversationMessageErrorCode =
   | "ConversationNotFound"
   | "UserNotConversationRecipient";

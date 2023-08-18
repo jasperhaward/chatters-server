@@ -25,6 +25,7 @@ import {
 import {
   GetConversationsSchema,
   CreateConversationSchema,
+  GetConversationMessagesSchema,
   CreateConversationMessageSchema,
   CreateConversationRecipientSchema,
   DeleteConversationRecipientSchema,
@@ -143,6 +144,39 @@ export default async function conversationsController(
       });
 
       return conversation;
+    }
+  );
+
+  fastify.get(
+    "/:conversationId/messages",
+    {
+      schema: GetConversationMessagesSchema,
+      onRequest: authentication(db),
+    },
+    async (request) => {
+      const { userId } = request.token;
+      const { conversationId } = request.params;
+
+      if (!(await isExistingConversation(db, conversationId))) {
+        throw new BadRequestError(
+          "ConversationNotFound",
+          "conversation with id 'conversationId' not found"
+        );
+      }
+
+      const recipients = await findRecipientsByConversationId(
+        db,
+        conversationId
+      );
+
+      if (!isRecipientInConversation(recipients, userId)) {
+        throw new BadRequestError(
+          "UserNotConversationRecipient",
+          "user must be recipient of conversation"
+        );
+      }
+
+      return await findMessagesByConversationId(db, conversationId);
     }
   );
 
