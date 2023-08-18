@@ -1,7 +1,7 @@
 import { FastifySchema } from "fastify";
 import { Type } from "@sinclair/typebox";
 
-import { Conversation, Message, User } from "../schema";
+import { Conversation, Message, UserWithCreatedAt } from "../schema";
 import config from "../config";
 
 export const GetConversationsSchema = {
@@ -57,7 +57,7 @@ export const CreateConversationRecipientSchema = {
     recipientId: Type.String({ format: "uuid" }),
   }),
   response: {
-    "2xx": User,
+    "2xx": UserWithCreatedAt,
   },
 } satisfies FastifySchema;
 

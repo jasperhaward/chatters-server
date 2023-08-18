@@ -1,23 +1,26 @@
 import { Kysely, sql } from "kysely";
 
 import { Database, InsertableRecipientRow, RecipientRow } from "../database";
-import { TUser } from "../schema";
+import { TUserWithCreatedAt } from "../schema";
 
 export interface RecipientRowWithUsername extends RecipientRow {
   username: string;
 }
 
-export function toRecipientSchema(row: RecipientRowWithUsername): TUser {
+export function toRecipientSchema(
+  row: RecipientRowWithUsername
+): TUserWithCreatedAt {
   return {
     id: row.user_id,
     username: row.username,
+    createdAt: row.created_at,
   };
 }
 
 export async function findRecipientsByConversationId(
   db: Kysely<Database>,
   conversationId: string
-): Promise<TUser[]> {
+): Promise<TUserWithCreatedAt[]> {
   const rows = await db
     .selectFrom("conversation_recipient as r")
     .innerJoin("user_account as u", "u.user_id", "r.user_id")
@@ -52,7 +55,7 @@ export async function isExistingConversationWithRecipientIds(
 }
 
 export function isRecipientInConversation(
-  recipients: TUser[],
+  recipients: TUserWithCreatedAt[],
   recipientId: string
 ) {
   return !!recipients.find((recipient) => recipient.id === recipientId);
@@ -84,7 +87,7 @@ export interface InsertRecipientsParams {
 export async function insertRecipients(
   db: Kysely<Database>,
   params: InsertRecipientsParams
-): Promise<TUser[]> {
+): Promise<TUserWithCreatedAt[]> {
   const { conversationId, recipientIds } = params;
 
   const values = recipientIds.map<InsertableRecipientRow>((recipientId) => ({

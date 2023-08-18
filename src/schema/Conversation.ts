@@ -1,5 +1,5 @@
 import { Type, Static } from "@sinclair/typebox";
-import { User } from "./User";
+import { User, UserWithCreatedAt } from "./User";
 import { Message } from "./Message";
 
 export const Conversation = Type.Object({
@@ -7,7 +7,7 @@ export const Conversation = Type.Object({
   createdAt: Type.String({ format: "date-time" }),
   createdBy: User,
   title: Type.Union([Type.String(), Type.Null()]),
-  recipients: Type.Array(User),
+  recipients: Type.Array(UserWithCreatedAt),
   latestMessage: Type.Union([Message, Type.Null()]),
 });
 
