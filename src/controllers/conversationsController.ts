@@ -236,6 +236,13 @@ export default async function conversationsController(
         );
       }
 
+      if (!isRecipientInConversation(recipients, userId)) {
+        throw new BadRequestError(
+          "UserNotConversationRecipient",
+          "user must be recipient of conversation"
+        );
+      }
+
       const params: InsertRecipientsParams = {
         conversationId,
         recipientIds: [recipientId],
@@ -297,11 +304,35 @@ export default async function conversationsController(
         );
       }
 
+      if (!isRecipientInConversation(recipients, userId)) {
+        throw new BadRequestError(
+          "UserNotConversationRecipient",
+          "user must be recipient of conversation"
+        );
+      }
+
       if (recipients.length === 2) {
         throw new BadRequestError(
           "MinimumRecipientsRequired",
           "conversation must have at least 2 recipients"
         );
+      }
+
+      // deleting a recipient from a conversations with 3 recipients will
+      // create a DM conversation, of which there should be no duplicates
+      if (recipients.length === 3) {
+        const updatedRecipientIds = recipients
+          .map((recipient) => recipient.id)
+          .filter((id) => recipient.id !== id);
+
+        if (
+          await isExistingConversationWithRecipientIds(db, updatedRecipientIds)
+        ) {
+          throw new BadRequestError(
+            "ExistingDirectConversation",
+            `direct conversation between user and updated 'recipientIds' already exists`
+          );
+        }
       }
 
       const params: DeleteRecipientParams = {

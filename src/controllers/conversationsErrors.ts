@@ -10,9 +10,12 @@ export type CreateConversationMessageErrorCode =
 export type CreateConversationRecipientErrorCode =
   | "ConversationNotFound"
   | "RecipientNotFound"
+  | "UserNotConversationRecipient"
   | "RecipientAlreadyConversationMember";
 
 export type DeleteConversationRecipientErrorCode =
   | "ConversationNotFound"
+  | "UserNotConversationRecipient"
   | "MinimumRecipientsRequired"
-  | "RecipientNotConversationMember";
+  | "RecipientNotConversationMember"
+  | "ExistingDirectConversation";
