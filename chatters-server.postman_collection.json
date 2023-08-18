@@ -118,7 +118,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"recipientIds\": [\"b4ad3da9-5271-4ed0-aafc-5be7e26963f8\"]\r\n}",
+							"raw": "{\r\n    \"recipientIds\": [\"bba0be07-27e0-463e-96f6-f2e423d4c4eb\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -146,7 +146,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"content\": \"Hello Monika\"\r\n}",
+							"raw": "{\r\n    \"content\": \"Hello Monika, Ben\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -154,7 +154,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/conversations/0a48edde-f5de-4fb2-89df-f67d70da388b/messages",
+							"raw": "{{url}}/api/v1/conversations/b2a31047-bc81-42f6-99cc-c16aff0d004f/messages",
 							"host": [
 								"{{url}}"
 							],
@@ -162,7 +162,40 @@
 								"api",
 								"v1",
 								"conversations",
-								"0a48edde-f5de-4fb2-89df-f67d70da388b",
+								"b2a31047-bc81-42f6-99cc-c16aff0d004f",
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/conversations/:conversationId/messages",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/conversations/07ef1919-889d-4232-8062-eb625a62df16/messages",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"conversations",
+								"07ef1919-889d-4232-8062-eb625a62df16",
 								"messages"
 							]
 						}
@@ -176,7 +209,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"recipientId\": \"3bbd2bc5-4972-4116-8e20-bf645314b311\"\r\n}",
+							"raw": "{\r\n    \"recipientId\": \"bba0be07-27e0-463e-96f6-f2e423d4c4eb\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -184,7 +217,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/conversations/77ad4c91-d8ee-4620-9886-0bc469751615/recipients",
+							"raw": "{{url}}/api/v1/conversations/b2a31047-bc81-42f6-99cc-c16aff0d004f/recipients",
 							"host": [
 								"{{url}}"
 							],
@@ -192,7 +225,7 @@
 								"api",
 								"v1",
 								"conversations",
-								"77ad4c91-d8ee-4620-9886-0bc469751615",
+								"b2a31047-bc81-42f6-99cc-c16aff0d004f",
 								"recipients"
 							]
 						}
@@ -206,7 +239,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"recipientId\": \"8882b715-da0f-49bc-b953-50ca267b0b30\"\r\n}",
+							"raw": "{\r\n    \"recipientId\": \"b4ad3da9-5271-4ed0-aafc-5be7e26963f8\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -214,7 +247,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/conversations/552157b4-3211-45f7-9e46-998376838c42/recipients",
+							"raw": "{{url}}/api/v1/conversations/b2a31047-bc81-42f6-99cc-c16aff0d004f/recipients",
 							"host": [
 								"{{url}}"
 							],
@@ -222,7 +255,7 @@
 								"api",
 								"v1",
 								"conversations",
-								"552157b4-3211-45f7-9e46-998376838c42",
+								"b2a31047-bc81-42f6-99cc-c16aff0d004f",
 								"recipients"
 							]
 						}
@@ -275,7 +308,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOiIyMDIzLTA4LTE1VDIyOjU5OjA4LjU5OVoiLCJ0b2tlbklkIjoiNWM2YzAzNTQtOWZiZi00YzRlLTg2NmEtZDhhNWE5NTk5NWE0IiwidXNlcklkIjoiMThkODc3NTAtNWEwMy00NmUxLWIwYTItZjA0NTM3ZjU3Yzk2IiwiaWF0IjoxNjkyMTQwNDQwLCJleHAiOjE2OTIxNDM0NDB9.sO4OhIaqO3ufbacPf2yrT8NbQFtTKG6wDDT9oNYkrRE",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOiIyMDIzLTA4LTE4VDIyOjQzOjUwLjQ4OVoiLCJ0b2tlbklkIjoiYThhYjI4NmEtNWExZi00MGY1LWIzZDEtMzcyZTcyZGQ4NWYxIiwidXNlcklkIjoiMThkODc3NTAtNWEwMy00NmUxLWIwYTItZjA0NTM3ZjU3Yzk2IiwiaWF0IjoxNjkyMzk1MDMwLCJleHAiOjE2OTIzOTgwMzB9.7jUSMBZcxBdayKDlyUf4v1-ULOkwTFQ9kU_hzXiBefY",
 				"type": "string"
 			}
 		]
