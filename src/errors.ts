@@ -1,21 +1,15 @@
-import { RegisterErrorCode } from "./controllers/authErrors";
-import {
-  CreateConversationErrorCode,
-  GetConversationMessagesErrorCode,
-  CreateConversationMessageErrorCode,
-  CreateConversationRecipientErrorCode,
-  DeleteConversationRecipientErrorCode,
-} from "./controllers/conversationsErrors";
-
 type ErrorStatusCode = 400 | 401 | 404 | 500;
 
 type ErrorCode =
-  | RegisterErrorCode
-  | CreateConversationErrorCode
-  | GetConversationMessagesErrorCode
-  | CreateConversationMessageErrorCode
-  | CreateConversationRecipientErrorCode
-  | DeleteConversationRecipientErrorCode
+  | "UsernameNotUnique"
+  | "PasswordsNotMatching"
+  | "MinimumRecipientsRequired"
+  | "ExistingDirectConversation"
+  | "RecipientNotFound"
+  | "ConversationNotFound"
+  | "UserNotConversationRecipient"
+  | "RecipientAlreadyConversationMember"
+  | "RecipientNotConversationMember"
   | "InvalidCredentials"
   | "InternalServerError";
 
@@ -42,14 +36,14 @@ export class BadRequestError extends ControllerError {
   }
 }
 
-export class InternalServerError extends ControllerError {
-  constructor() {
-    super(400, "InternalServerError", "Unknown internal server error.");
-  }
-}
-
 export class UnauthorisedError extends ControllerError {
   constructor() {
     super(401, "InvalidCredentials", "Credentials are invalid.");
+  }
+}
+
+export class InternalServerError extends ControllerError {
+  constructor() {
+    super(500, "InternalServerError", "Unknown error encountered.");
   }
 }
