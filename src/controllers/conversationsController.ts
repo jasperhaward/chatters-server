@@ -337,7 +337,7 @@ export default async function conversationsController(
 
       if (!isRecipientInConversation(recipients, recipientId)) {
         throw new BadRequestError(
-          "RecipientNotConversationMember",
+          "UserNotConversationRecipient",
           "user with id 'recipientId' must be recipient of conversation"
         );
       }

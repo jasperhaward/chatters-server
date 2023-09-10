@@ -9,7 +9,6 @@ type ErrorCode =
   | "ConversationNotFound"
   | "UserNotConversationRecipient"
   | "RecipientAlreadyConversationMember"
-  | "RecipientNotConversationMember"
   | "InvalidCredentials"
   | "InternalServerError";
 
