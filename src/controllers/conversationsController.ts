@@ -1,4 +1,4 @@
-import { FastifyTypebox, ControllerOptions } from "../types";
+import { FastifyTypebox, ControllerOptions, ServerEvent } from "../types";
 import authentication from "../hooks/authenticationHook";
 
 import { TConversation } from "../schema";
@@ -31,11 +31,15 @@ import {
   DeleteConversationRecipientSchema,
 } from "./conversationsSchema";
 
+export interface ConversationsControllerOptions extends ControllerOptions {
+  dispatchServerEvent: (recipientIds: string[], event: ServerEvent) => void;
+}
+
 export default async function conversationsController(
   fastify: FastifyTypebox,
-  options: ControllerOptions
+  options: ConversationsControllerOptions
 ) {
-  const { db, sendEvent } = options;
+  const { db, dispatchServerEvent } = options;
 
   fastify.get(
     "/",
@@ -138,7 +142,7 @@ export default async function conversationsController(
 
       reply.code(201);
 
-      sendEvent(sanitisedRecipientIds, {
+      dispatchServerEvent(sanitisedRecipientIds, {
         type: "conversation/created",
         payload: conversation,
       });
@@ -224,7 +228,7 @@ export default async function conversationsController(
         .map((recipient) => recipient.id)
         .filter((recipientId) => recipientId !== userId);
 
-      sendEvent(eventRecipientIds, {
+      dispatchServerEvent(eventRecipientIds, {
         type: "message/created",
         payload: message,
       });
@@ -290,7 +294,7 @@ export default async function conversationsController(
         .map((recipient) => recipient.id)
         .filter((recipientId) => recipientId !== userId);
 
-      sendEvent(eventRecipientIds, {
+      dispatchServerEvent(eventRecipientIds, {
         type: "recipient/added",
         payload: recipient,
       });
@@ -380,7 +384,7 @@ export default async function conversationsController(
         .map((recipient) => recipient.id)
         .filter((recipientId) => recipientId !== userId);
 
-      sendEvent(eventRecipientIds, {
+      dispatchServerEvent(eventRecipientIds, {
         type: "recipient/removed",
         payload: recipient,
       });

@@ -9,8 +9,6 @@ import {
 
 type ErrorStatusCode = 400 | 401 | 404 | 500;
 
-type UnauthorisedErrorCode = "InvalidCredentials";
-
 type ErrorCode =
   | RegisterErrorCode
   | CreateConversationErrorCode
@@ -18,9 +16,10 @@ type ErrorCode =
   | CreateConversationMessageErrorCode
   | CreateConversationRecipientErrorCode
   | DeleteConversationRecipientErrorCode
-  | UnauthorisedErrorCode;
+  | "InvalidCredentials"
+  | "InternalServerError";
 
-class ControllerError extends Error {
+export class ControllerError extends Error {
   readonly status: ErrorStatusCode;
   readonly code: ErrorCode;
 
@@ -40,6 +39,12 @@ class ControllerError extends Error {
 export class BadRequestError extends ControllerError {
   constructor(code: ErrorCode, message: string) {
     super(400, code, message);
+  }
+}
+
+export class InternalServerError extends ControllerError {
+  constructor() {
+    super(400, "InternalServerError", "Unknown internal server error.");
   }
 }
 

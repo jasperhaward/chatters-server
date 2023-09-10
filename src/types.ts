@@ -40,11 +40,20 @@ export interface RecipientRemovedEvent {
   payload: TUser;
 }
 
-export type ClientEvent =
+export interface ErrorEvent {
+  type: "error";
+  payload: {
+    code: string;
+    message: string;
+  };
+}
+
+export type ServerEvent =
   | ConversationCreatedEvent
   | MessageCreatedEvent
   | RecipientAddedEvent
-  | RecipientRemovedEvent;
+  | RecipientRemovedEvent
+  | ErrorEvent;
 
 export interface ClientConnection {
   userId: string;
@@ -53,5 +62,4 @@ export interface ClientConnection {
 
 export interface ControllerOptions {
   db: Kysely<Database>;
-  sendEvent: (recipientIds: string[], event: ClientEvent) => void;
 }

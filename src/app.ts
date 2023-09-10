@@ -6,7 +6,7 @@ import websocket from "@fastify/websocket";
 
 import { Config } from "./config";
 import { Database } from "./database";
-import { FastifyTypebox, ClientConnection, ClientEvent } from "./types";
+import { FastifyTypebox, ClientConnection, ServerEvent } from "./types";
 
 import authController from "./controllers/authController";
 import contactsController from "./controllers/contactsController";
@@ -40,17 +40,15 @@ export default class App {
     this.fastify.register(authController, {
       prefix: "/api/v1/auth",
       db: this.db,
-      sendEvent: this.sendEvent,
     });
     this.fastify.register(contactsController, {
       prefix: "/api/v1/contacts",
       db: this.db,
-      sendEvent: this.sendEvent,
     });
     this.fastify.register(conversationsController, {
       prefix: "/api/v1/conversations",
       db: this.db,
-      sendEvent: this.sendEvent,
+      dispatchServerEvent: this.dispatchServerEvent,
     });
     this.fastify.register(socketController, {
       prefix: "/api/v1/socket",
@@ -73,7 +71,7 @@ export default class App {
     await this.db?.destroy();
   }
 
-  sendEvent = (recipientIds: string[], event: ClientEvent) => {
+  dispatchServerEvent = (recipientIds: string[], event: ServerEvent) => {
     for (const connection of this.clientConnections) {
       if (recipientIds.includes(connection.userId)) {
         connection.socket.send(JSON.stringify(event));

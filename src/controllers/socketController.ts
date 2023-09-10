@@ -1,14 +1,18 @@
 import { Kysely } from "kysely";
 
 import { Database } from "../database";
-import { FastifyTypebox, ClientConnection } from "../types";
+import { FastifyTypebox, ClientConnection, ErrorEvent } from "../types";
 import {
   ExpiredAuthTokenError,
   InvalidAuthTokenError,
   validateToken,
   parseTokenScheme,
 } from "../services";
-import { UnauthorisedError } from "../errors";
+import {
+  ControllerError,
+  InternalServerError,
+  UnauthorisedError,
+} from "../errors";
 
 export interface SocketControllerOptions {
   db: Kysely<Database>;
@@ -37,15 +41,31 @@ export default async function socketController(
 
         clientConnections.push(clientConnection);
       } catch (error) {
+        let transformedError: Error;
+
         if (
           error instanceof InvalidAuthTokenError ||
           error instanceof ExpiredAuthTokenError
         ) {
-          socket.send(JSON.stringify(new UnauthorisedError()));
+          transformedError = new UnauthorisedError();
+        } else if (error instanceof Error) {
+          transformedError = error;
         } else {
-          socket.send(JSON.stringify(error));
+          transformedError = new InternalServerError();
         }
 
+        const event: ErrorEvent = {
+          type: "error",
+          payload: {
+            code:
+              transformedError instanceof ControllerError
+                ? transformedError.code
+                : transformedError.name,
+            message: transformedError.message,
+          },
+        };
+
+        socket.send(JSON.stringify(event));
         connection.destroy();
         request.log.error(error);
       }
