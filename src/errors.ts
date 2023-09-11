@@ -8,7 +8,7 @@ type ErrorCode =
   | "RecipientNotFound"
   | "ConversationNotFound"
   | "UserNotConversationRecipient"
-  | "RecipientAlreadyConversationMember"
+  | "UserIsConversationRecipient"
   | "InvalidCredentials"
   | "InternalServerError";
 

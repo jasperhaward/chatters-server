@@ -269,7 +269,7 @@ export default async function conversationsController(
 
       if (isRecipientInConversation(recipients, recipientId)) {
         throw new BadRequestError(
-          "RecipientAlreadyConversationMember",
+          "UserIsConversationRecipient",
           "user with id 'recipientId' is already recipient of conversation"
         );
       }
