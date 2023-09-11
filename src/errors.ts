@@ -5,6 +5,8 @@ type ErrorCode =
   | "PasswordsNotMatching"
   | "MinimumRecipientsRequired"
   | "ExistingDirectConversation"
+  | "CannotCreateDirectConversation"
+  | "UserNotFound"
   | "RecipientNotFound"
   | "ConversationNotFound"
   | "UserNotConversationRecipient"

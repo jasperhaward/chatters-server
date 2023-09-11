@@ -85,7 +85,7 @@ export default async function conversationsController(
       if (sanitisedRecipientIds.length < 1) {
         throw new BadRequestError(
           "MinimumRecipientsRequired",
-          `conversation must have at least 1 recipient`
+          "Conversation must have at least 2 unique recipients."
         );
       }
 
@@ -93,12 +93,12 @@ export default async function conversationsController(
 
       if (users.length !== sanitisedRecipientIds.length) {
         throw new BadRequestError(
-          "RecipientNotFound",
-          `user with id from 'recipientIds' not found`
+          "UserNotFound",
+          `User from '${sanitisedRecipientIds.join(",")}' not found.`
         );
       }
 
-      // should not be able to create multiple 'DM' conversations with only 2 recipients
+      // should not be able to create duplicate direct conversations with only 2 recipients
       if (
         sanitisedRecipientIds.length === 1 &&
         (await isExistingConversationWithRecipientIds(db, [
@@ -108,7 +108,7 @@ export default async function conversationsController(
       ) {
         throw new BadRequestError(
           "ExistingDirectConversation",
-          `direct conversation between user and 'recipientIds' already exists`
+          `Direct conversation between user and '${sanitisedRecipientIds[0]}' already exists.`
         );
       }
 
@@ -164,7 +164,7 @@ export default async function conversationsController(
       if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
-          "conversation with id 'conversationId' not found"
+          `Conversation with id '${conversationId}' not found.`
         );
       }
 
@@ -176,7 +176,7 @@ export default async function conversationsController(
       if (!isRecipientInConversation(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          "user must be recipient of conversation"
+          "User must be recipient of conversation."
         );
       }
 
@@ -198,7 +198,7 @@ export default async function conversationsController(
       if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
-          "conversation with id 'conversationId' not found"
+          `Conversation with id '${conversationId}' not found.`
         );
       }
 
@@ -210,7 +210,7 @@ export default async function conversationsController(
       if (!isRecipientInConversation(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          "user must be recipient of conversation"
+          "User must be recipient of conversation."
         );
       }
 
@@ -251,14 +251,14 @@ export default async function conversationsController(
       if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
-          "conversation with id 'conversationId' not found"
+          `Conversation with id '${conversationId}' not found.`
         );
       }
 
       if (!(await findUserByUserId(db, recipientId))) {
         throw new BadRequestError(
-          "RecipientNotFound",
-          `user with id 'recipientId' not found`
+          "UserNotFound",
+          `User with id '${recipientId}' not found.`
         );
       }
 
@@ -270,14 +270,14 @@ export default async function conversationsController(
       if (isRecipientInConversation(recipients, recipientId)) {
         throw new BadRequestError(
           "UserIsConversationRecipient",
-          "user with id 'recipientId' is already recipient of conversation"
+          `User with id '${recipientId}' is already recipient of conversation.`
         );
       }
 
       if (!isRecipientInConversation(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          "user must be recipient of conversation"
+          "User must be recipient of conversation."
         );
       }
 
@@ -317,16 +317,7 @@ export default async function conversationsController(
       if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
           "ConversationNotFound",
-          "conversation with id 'conversationId' not found"
-        );
-      }
-
-      const recipient = await findUserByUserId(db, recipientId);
-
-      if (!recipient) {
-        throw new BadRequestError(
-          "RecipientNotFound",
-          `user with id 'recipientId' not found`
+          `Conversation with id '${conversationId}' not found.`
         );
       }
 
@@ -338,39 +329,29 @@ export default async function conversationsController(
       if (!isRecipientInConversation(recipients, recipientId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          "user with id 'recipientId' must be recipient of conversation"
+          `User with id '${recipientId}' must be recipient of conversation.`
         );
       }
 
       if (!isRecipientInConversation(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          "user must be recipient of conversation"
+          "User must be recipient of conversation."
         );
       }
 
       if (recipients.length === 2) {
         throw new BadRequestError(
           "MinimumRecipientsRequired",
-          "conversation must have at least 2 recipients"
+          "Conversation must have at least 2 recipients."
         );
       }
 
-      // deleting a recipient from a conversations with 3 recipients will
-      // create a DM conversation, of which there should be no duplicates
       if (recipients.length === 3) {
-        const updatedRecipientIds = recipients
-          .map((recipient) => recipient.id)
-          .filter((id) => recipient.id !== id);
-
-        if (
-          await isExistingConversationWithRecipientIds(db, updatedRecipientIds)
-        ) {
-          throw new BadRequestError(
-            "ExistingDirectConversation",
-            `direct conversation between user and updated 'recipientIds' already exists`
-          );
-        }
+        throw new BadRequestError(
+          "CannotCreateDirectConversation",
+          "Cannot create a direct conversation from a group conversation."
+        );
       }
 
       const params: DeleteRecipientParams = {
@@ -383,6 +364,10 @@ export default async function conversationsController(
       const eventRecipientIds = recipients
         .map((recipient) => recipient.id)
         .filter((recipientId) => recipientId !== userId);
+
+      const recipient = recipients.find(
+        (recipient) => recipient.id === recipientId
+      )!;
 
       dispatchServerEvent(eventRecipientIds, {
         type: "recipient/removed",
