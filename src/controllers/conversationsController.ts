@@ -89,6 +89,13 @@ export default async function conversationsController(
         );
       }
 
+      if (sanitisedRecipientIds.length === 1 && title) {
+        throw new BadRequestError(
+          "CannotSetDirectConversationTitle",
+          "Cannot set the title for a direct conversation."
+        );
+      }
+
       const users = await findUsersByUserIds(db, sanitisedRecipientIds);
 
       if (users.length !== sanitisedRecipientIds.length) {

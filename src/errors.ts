@@ -4,6 +4,7 @@ type ErrorCode =
   | "UsernameNotUnique"
   | "PasswordsNotMatching"
   | "MinimumRecipientsRequired"
+  | "CannotSetDirectConversationTitle"
   | "ExistingDirectConversation"
   | "CannotCreateDirectConversation"
   | "UserNotFound"
