@@ -26,14 +26,14 @@ export default async function authController(
       if (password !== confirmPassword) {
         throw new BadRequestError(
           "PasswordsNotMatching",
-          "'password' and 'confirmPassword' must be the same"
+          "Password and confirm password must be the same."
         );
       }
 
       if (await findUserByUsername(db, username)) {
         throw new BadRequestError(
           "UsernameNotUnique",
-          "'username' must be unique"
+          "Username is not unique."
         );
       }
 
