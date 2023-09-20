@@ -44,6 +44,6 @@ const config: Readonly<Config> = {
   maxMessageLength: 250, // *
 };
 
-// * - based on SQL './schema.sql'
+// * based on SQL schema
 
 export default config;

@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "node -r ts-node/register --watch src/index.ts",
     "start": "node dist/src/index.js",
-    "build": "rm -rf dist && tsc"
+    "build": "rm -rf dist && tsc",
+    "migrations": "node -r ts-node/register src/migrations/execute.ts"
   },
   "dependencies": {
     "@fastify/cors": "^8.3.0",
