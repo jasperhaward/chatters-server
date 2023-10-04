@@ -7,6 +7,7 @@ type ErrorCode =
   | "CannotSetDirectConversationTitle"
   | "ExistingDirectConversation"
   | "CannotCreateDirectConversation"
+  | "CannotCreateGroupConversation"
   | "UserNotFound"
   | "RecipientNotFound"
   | "ConversationNotFound"

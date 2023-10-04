@@ -262,17 +262,24 @@ export default async function conversationsController(
         );
       }
 
-      if (!(await findUserByUserId(db, recipientId))) {
-        throw new BadRequestError(
-          "UserNotFound",
-          `User with id '${recipientId}' not found.`
-        );
-      }
-
       const recipients = await findRecipientsByConversationId(
         db,
         conversationId
       );
+
+      if (!isRecipientInConversation(recipients, userId)) {
+        throw new BadRequestError(
+          "UserNotConversationRecipient",
+          "User must be recipient of conversation."
+        );
+      }
+
+      if (recipients.length === 2) {
+        throw new BadRequestError(
+          "CannotCreateGroupConversation",
+          "Cannot create a group conversation from a direct conversation."
+        );
+      }
 
       if (isRecipientInConversation(recipients, recipientId)) {
         throw new BadRequestError(
@@ -281,10 +288,10 @@ export default async function conversationsController(
         );
       }
 
-      if (!isRecipientInConversation(recipients, userId)) {
+      if (!(await findUserByUserId(db, recipientId))) {
         throw new BadRequestError(
-          "UserNotConversationRecipient",
-          "User must be recipient of conversation."
+          "UserNotFound",
+          `User with id '${recipientId}' not found.`
         );
       }
 
@@ -333,13 +340,6 @@ export default async function conversationsController(
         conversationId
       );
 
-      if (!isRecipientInConversation(recipients, recipientId)) {
-        throw new BadRequestError(
-          "UserNotConversationRecipient",
-          `User with id '${recipientId}' must be recipient of conversation.`
-        );
-      }
-
       if (!isRecipientInConversation(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
@@ -350,7 +350,7 @@ export default async function conversationsController(
       if (recipients.length === 2) {
         throw new BadRequestError(
           "MinimumRecipientsRequired",
-          "Conversation must have at least 2 recipients."
+          "Cannot remove recipients from a direct conversation."
         );
       }
 
@@ -358,6 +358,13 @@ export default async function conversationsController(
         throw new BadRequestError(
           "CannotCreateDirectConversation",
           "Cannot create a direct conversation from a group conversation."
+        );
+      }
+
+      if (!isRecipientInConversation(recipients, recipientId)) {
+        throw new BadRequestError(
+          "UserNotConversationRecipient",
+          `User with id '${recipientId}' must be recipient of conversation.`
         );
       }
 
