@@ -1,6 +1,6 @@
 {
   "name": "chatters-server",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "scripts": {
     "dev": "node -r ts-node/register --watch src/index.ts",
     "start": "node dist/src/index.js",
@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.3.0",
+    "@fastify/swagger": "^8.10.1",
+    "@fastify/swagger-ui": "^1.9.3",
     "@fastify/websocket": "^8.1.0",
     "@sinclair/typebox": "^0.25.24",
     "dotenv": "^16.3.1",

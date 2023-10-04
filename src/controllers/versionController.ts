@@ -1,10 +1,10 @@
 import packageJson from "../../package.json";
 import config from "../config";
 import { FastifyTypebox } from "../types";
-import { IndexSchema } from "./indexSchema";
+import { VersionSchema } from "./versionSchema";
 
-export default async function indexController(fastify: FastifyTypebox) {
-  fastify.get("/", { schema: IndexSchema }, () => {
+export default async function versionController(fastify: FastifyTypebox) {
+  fastify.get("/", { schema: VersionSchema }, () => {
     return {
       name: packageJson.name,
       version: packageJson.version,

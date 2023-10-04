@@ -3,6 +3,8 @@ import { Kysely, PostgresDialect } from "kysely";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
+import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
 
 import { Config } from "./config";
 import { Database } from "./database";
@@ -11,7 +13,7 @@ import { FastifyTypebox, ClientConnection, ServerEvent } from "./types";
 import authController from "./controllers/authController";
 import contactsController from "./controllers/contactsController";
 import conversationsController from "./controllers/conversationsController";
-import indexController from "./controllers/indexController";
+import versionController from "./controllers/versionController";
 import socketController from "./controllers/socketController";
 
 export default class App {
@@ -35,8 +37,10 @@ export default class App {
     this.fastify.decorateRequest("token", null);
     this.fastify.register(cors);
     this.fastify.register(websocket);
+    this.fastify.register(swagger);
+    this.fastify.register(swaggerUi, { prefix: "/" });
 
-    this.fastify.register(indexController, { prefix: "/" });
+    this.fastify.register(versionController, { prefix: "/version" });
     this.fastify.register(authController, {
       prefix: "/api/v1/auth",
       db: this.db,

@@ -1,7 +1,9 @@
-import { Kysely } from "kysely";
-
-import { Database } from "../database";
-import { FastifyTypebox, ClientConnection, ErrorEvent } from "../types";
+import {
+  FastifyTypebox,
+  ClientConnection,
+  ErrorEvent,
+  ControllerOptions,
+} from "../types";
 import {
   ExpiredAuthTokenError,
   InvalidAuthTokenError,
@@ -14,8 +16,7 @@ import {
   UnauthorisedError,
 } from "../errors";
 
-export interface SocketControllerOptions {
-  db: Kysely<Database>;
+export interface SocketControllerOptions extends ControllerOptions {
   clientConnections: ClientConnection[];
 }
 
