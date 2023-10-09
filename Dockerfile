@@ -1,14 +1,14 @@
 FROM node:20
 
-WORKDIR /usr/src/chatters-server
+WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json .
+COPY tsconfig.json .
+COPY src/ src
+
 RUN npm ci
-
-COPY tsconfig.json ./
-COPY src/ ./src
 RUN npm run build
-RUN rm -r ./src
+RUN rm -r src
 RUN npm prune --omit=dev
 
 EXPOSE 8080
