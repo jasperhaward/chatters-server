@@ -1,5 +1,5 @@
 # get version from package.json
-version=$(cat package.json | grep -o '"version": "[^"]*' | grep -o '[^"]*$')
+version=$(grep -o '"version": "[^"]*' package.json | grep -o '[^"]*$')
 echo "Building version '$version'"
 
 tag_latest="jasperhaward/chatters-server:latest"
