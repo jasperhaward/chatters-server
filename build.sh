@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # get version from package.json
 version=$(grep -o '"version": "[^"]*' package.json | grep -o '[^"]*$')
 echo "Building version '$version'"
