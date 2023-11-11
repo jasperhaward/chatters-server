@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"Jasper Haward\",\r\n    \"password\": \"Password123\",\r\n    \"confirmPassword\": \"Password123\"\r\n}",
+							"raw": "{\r\n    \"username\": \"\",\r\n    \"password\": \"\",\r\n    \"confirmPassword\": \"\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -45,7 +45,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"Jasper Haward\",\r\n    \"password\": \"Password123\"\r\n}",
+							"raw": "{\r\n    \"username\": \"\",\r\n    \"password\": \"\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -118,7 +118,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"recipientIds\": [\"bba0be07-27e0-463e-96f6-f2e423d4c4eb\"]\r\n}",
+							"raw": "{\r\n    \"recipientIds\": [\"65222578-5456-46ed-9d79-1e53a9548acb\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -146,7 +146,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"content\": \"Hello Monika, Ben\"\r\n}",
+							"raw": "{\r\n    \"content\": \"Hello from nader\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -154,7 +154,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/conversations/b2a31047-bc81-42f6-99cc-c16aff0d004f/messages",
+							"raw": "{{url}}/api/v1/conversations/827a9e02-0157-4bbc-929c-61d3446e4a94/messages",
 							"host": [
 								"{{url}}"
 							],
@@ -162,7 +162,7 @@
 								"api",
 								"v1",
 								"conversations",
-								"b2a31047-bc81-42f6-99cc-c16aff0d004f",
+								"827a9e02-0157-4bbc-929c-61d3446e4a94",
 								"messages"
 							]
 						}
@@ -289,14 +289,17 @@
 			]
 		},
 		{
-			"name": "/",
+			"name": "/version",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{url}}",
+					"raw": "{{url}}/version",
 					"host": [
 						"{{url}}"
+					],
+					"path": [
+						"version"
 					]
 				}
 			},
@@ -308,7 +311,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOiIyMDIzLTA4LTE4VDIyOjQzOjUwLjQ4OVoiLCJ0b2tlbklkIjoiYThhYjI4NmEtNWExZi00MGY1LWIzZDEtMzcyZTcyZGQ4NWYxIiwidXNlcklkIjoiMThkODc3NTAtNWEwMy00NmUxLWIwYTItZjA0NTM3ZjU3Yzk2IiwiaWF0IjoxNjkyMzk1MDMwLCJleHAiOjE2OTIzOTgwMzB9.7jUSMBZcxBdayKDlyUf4v1-ULOkwTFQ9kU_hzXiBefY",
+				"value": "",
 				"type": "string"
 			}
 		]
