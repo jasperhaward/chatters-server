@@ -22,8 +22,8 @@ export interface Config {
 
 const config: Readonly<Config> = {
   environment: parseEnv("ENVIRONMENT", "string"),
-  host: parseEnv("HOST", "string", "localhost"),
-  port: parseEnv("PORT", "number", 3001),
+  host: parseEnv("HOST", "string"),
+  port: parseEnv("PORT", "number"),
   database: {
     host: parseEnv("POSTGRES_HOST", "string"),
     port: parseEnv("POSTGRES_PORT", "number"),
