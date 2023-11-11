@@ -71,12 +71,26 @@ export default class App {
       port: this.config.port,
       host: this.config.host,
     });
+
+    // dispatch ping event for all active WS connections every 30 seconds, stopping
+    // nginx closing the connection - https://nginx.org/en/docs/http/websocket.html
+    setInterval(this.dispatchSocketPings, 30 * 1000);
   }
 
   async stop() {
+    for (const connection of this.clientConnections) {
+      connection.socket.close();
+    }
+
     await this.fastify.close();
     await this.db?.destroy();
   }
+
+  dispatchSocketPings = () => {
+    for (const connection of this.clientConnections) {
+      connection.socket.ping();
+    }
+  };
 
   dispatchServerEvent = (recipientIds: string[], event: ServerEvent) => {
     for (const connection of this.clientConnections) {
