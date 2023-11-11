@@ -35,7 +35,10 @@ export default class App {
     this.fastify = Fastify({ logger: true });
 
     this.fastify.decorateRequest("token", null);
-    this.fastify.register(cors);
+
+    this.fastify.register(cors, {
+      origin: this.config.origins,
+    });
     this.fastify.register(websocket);
     this.fastify.register(swagger);
     this.fastify.register(swaggerUi, { prefix: "/" });

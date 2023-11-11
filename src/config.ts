@@ -6,6 +6,7 @@ export interface Config {
   environment: string;
   port: number;
   host: string;
+  origins: RegExp[];
   database: PoolConfig;
   authTokenSecret: string;
   authTokenExpiryDuration: number;
@@ -24,6 +25,11 @@ const config: Readonly<Config> = {
   environment: parseEnv("ENVIRONMENT", "string"),
   host: parseEnv("HOST", "string"),
   port: parseEnv("PORT", "number"),
+  origins: [
+    /^http:\/\/localhost:[0-9]{4}$/,
+    /^http:\/\/server(.local)?:[0-9]{4}$/,
+    /^https:\/\/(dev-)?chatters.jasperh.uk$/,
+  ],
   database: {
     host: parseEnv("POSTGRES_HOST", "string"),
     port: parseEnv("POSTGRES_PORT", "number"),
