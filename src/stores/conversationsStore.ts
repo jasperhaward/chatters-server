@@ -74,50 +74,28 @@ export async function findConversationsByUserId(
   db: Kysely<Database>,
   userId: string
 ): Promise<TConversationWithoutRecipients[]> {
+  const { coalesce } = db.fn;
+
   const rows = await db
-    // conversation ids where the user is a recipient
-    .with("user_conversation_id", (db) =>
-      db
-        .selectFrom("conversation_recipient")
-        .select("conversation_id")
-        .where("user_id", "=", userId)
-    )
-    // most recent message if there is one for each of those conversation ids
-    .with("latest_message", (db) =>
-      db
-        .selectFrom("user_conversation_id as uc")
-        .innerJoin(
-          "conversation_message as m",
-          "m.conversation_id",
-          "uc.conversation_id"
-        )
-        .innerJoin("user_account as u", "u.user_id", "m.created_by")
-        .distinctOn("m.conversation_id")
-        .select([
-          "m.id as latest_message_id",
-          "m.conversation_id as latest_message_conversation_id",
-          "m.created_at as latest_message_created_at",
-          "m.created_by as latest_message_created_by",
-          "u.username as latest_message_created_by_username",
-          "m.content as latest_message_content",
-        ])
-        .orderBy("m.conversation_id")
-        .orderBy("m.created_at", "desc")
-    )
-    .selectFrom("user_conversation_id as uc")
-    .innerJoin("conversation as c", "c.conversation_id", "uc.conversation_id")
-    .innerJoin("user_account as u", "u.user_id", "c.created_by")
+    .selectFrom("conversation_recipient as r")
+    .innerJoin("conversation as c", "c.conversation_id", "r.conversation_id")
+    .innerJoin("user_account as cu", "cu.user_id", "c.created_by")
     .leftJoin(
-      "latest_message as lm",
-      "lm.latest_message_conversation_id",
+      "conversation_latest_message as m",
+      "m.conversation_id",
       "c.conversation_id"
     )
+    .leftJoin("user_account as mu", "mu.user_id", "m.latest_message_created_by")
     .selectAll("c")
-    .selectAll("lm")
-    .select("u.username as created_by_username")
-    // the latest message may be null as a conversation may have
-    // 0 messages, if so order on conversation created_at
-    .orderBy(sql`greatest(lm.latest_message_created_at, c.created_at)`, "desc")
+    .select("cu.username as created_by_username")
+    .selectAll("m")
+    .select("cu.username as latest_message_created_by_username")
+    .where("r.user_id", "=", userId)
+    // order on conversation created_at if latest message is null
+    .orderBy(
+      coalesce("latest_message_created_at", "conversation.created_at"),
+      "desc"
+    )
     .execute();
 
   return rows.map(toConversationSchema);

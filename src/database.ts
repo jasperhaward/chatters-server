@@ -40,6 +40,16 @@ export interface MessageTable {
 export type MessageRow = Selectable<MessageTable>;
 export type InsertableMessageRow = Insertable<MessageTable>;
 
+export interface LatestMessageView {
+  conversation_id: GeneratedAlways<string>;
+  latest_message_id: GeneratedAlways<string>;
+  latest_message_created_at: GeneratedAlways<string>;
+  latest_message_created_by: GeneratedAlways<string>;
+  latest_message_content: GeneratedAlways<string>;
+}
+
+export type LatestMessageRow = Selectable<MessageTable>;
+
 export interface RecipientTable {
   id: GeneratedAlways<string>;
   created_at: GeneratedAlways<string>;
@@ -56,4 +66,5 @@ export interface Database {
   conversation: ConversationTable;
   conversation_recipient: RecipientTable;
   conversation_message: MessageTable;
+  conversation_latest_message: LatestMessageView;
 }
