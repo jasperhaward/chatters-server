@@ -15,7 +15,3 @@ export const UserWithCreatedAt = Type.Intersect([
 ]);
 
 export type TUserWithCreatedAt = Static<typeof UserWithCreatedAt>;
-
-export interface TUserWithPassword extends TUserWithCreatedAt {
-  password: string;
-}
