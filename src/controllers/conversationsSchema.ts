@@ -1,12 +1,17 @@
 import { FastifySchema } from "fastify";
 import { Type } from "@sinclair/typebox";
 
-import { Conversation, Message, UserWithCreatedAt } from "../schema";
 import config from "../config";
+import {
+  Conversation,
+  ConversationWithRecipientsAndLatestMessage,
+  Message,
+  UserWithCreatedAt,
+} from "../schema";
 
 export const GetConversationsSchema = {
   response: {
-    "2xx": Type.Array(Conversation),
+    "2xx": Type.Array(ConversationWithRecipientsAndLatestMessage),
   },
 } satisfies FastifySchema;
 
@@ -19,6 +24,22 @@ export const CreateConversationSchema = {
         maxLength: config.maxConversationTitleLength,
       })
     ),
+  }),
+  response: {
+    "2xx": ConversationWithRecipientsAndLatestMessage,
+  },
+} satisfies FastifySchema;
+
+export const UpdateConversationSchema = {
+  params: Type.Object({
+    conversationId: Type.String({ format: "uuid" }),
+  }),
+  body: Type.Object({
+    // for now the only updateable property is the title so we can mark it as required
+    title: Type.String({
+      minLength: 1,
+      maxLength: config.maxConversationTitleLength,
+    }),
   }),
   response: {
     "2xx": Conversation,

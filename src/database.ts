@@ -41,11 +41,11 @@ export type MessageRow = Selectable<MessageTable>;
 export type InsertableMessageRow = Insertable<MessageTable>;
 
 export interface LatestMessageView {
+  id: GeneratedAlways<string>;
+  created_at: GeneratedAlways<string>;
+  created_by: GeneratedAlways<string>;
   conversation_id: GeneratedAlways<string>;
-  latest_message_id: GeneratedAlways<string>;
-  latest_message_created_at: GeneratedAlways<string>;
-  latest_message_created_by: GeneratedAlways<string>;
-  latest_message_content: GeneratedAlways<string>;
+  content: GeneratedAlways<string>;
 }
 
 export type LatestMessageRow = Selectable<MessageTable>;
