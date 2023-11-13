@@ -1,6 +1,10 @@
 import { Kysely } from "kysely";
 
-import { Database, ConversationRow } from "../database";
+import {
+  Database,
+  ConversationRow,
+  InsertableConversationRow,
+} from "../database";
 import { Nullable } from "../types";
 import {
   TConversation,
@@ -117,15 +121,14 @@ export async function insertConversation(
   db: Kysely<Database>,
   params: InsertConversationParams
 ): Promise<TConversation> {
+  const values: InsertableConversationRow = {
+    created_by: params.createdBy,
+    title: params.title,
+  };
+
   const row = await db
     .with("c", (db) =>
-      db
-        .insertInto("conversation")
-        .values({
-          created_by: params.createdBy,
-          title: params.title,
-        })
-        .returningAll()
+      db.insertInto("conversation").values(values).returningAll()
     )
     .selectFrom("c")
     .innerJoin("user_account as u", "u.user_id", "c.created_by")

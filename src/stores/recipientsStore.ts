@@ -95,11 +95,7 @@ export async function insertRecipients(
 
   const rows = await db
     .with("r", (db) =>
-      // prettier-ignore
-      db
-        .insertInto("conversation_recipient")
-        .values(values)
-        .returningAll()
+      db.insertInto("conversation_recipient").values(values).returningAll()
     )
     .selectFrom("r")
     .innerJoin("user_account as u", "u.user_id", "r.user_id")

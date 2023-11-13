@@ -54,11 +54,7 @@ export async function insertMessage(
 
   const row = await db
     .with("m", (db) =>
-      // prettier-ignore
-      db
-        .insertInto("conversation_message")
-        .values(values)
-        .returningAll()
+      db.insertInto("conversation_message").values(values).returningAll()
     )
     .selectFrom("m")
     .innerJoin("user_account as u", "u.user_id", "m.created_by")

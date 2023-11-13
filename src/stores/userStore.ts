@@ -18,11 +18,7 @@ function toUserSchema(row: UserRow): TUserWithCreatedAt {
 export async function findUsers(
   db: Kysely<Database>
 ): Promise<TUserWithCreatedAt[]> {
-  // prettier-ignore
-  const rows = await db
-    .selectFrom("user_account")
-    .selectAll()
-    .execute();
+  const rows = await db.selectFrom("user_account").selectAll().execute();
 
   return rows.map(toUserSchema);
 }

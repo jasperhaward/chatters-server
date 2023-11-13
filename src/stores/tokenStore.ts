@@ -32,11 +32,7 @@ export async function deleteTokenByTokenId(
   db: Kysely<Database>,
   tokenId: string
 ) {
-  // prettier-ignore
-  await db
-    .deleteFrom("user_token")
-    .where("token_id", "=", tokenId)
-    .execute();
+  await db.deleteFrom("user_token").where("token_id", "=", tokenId).execute();
 }
 
 export async function insertToken(
