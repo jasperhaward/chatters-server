@@ -33,7 +33,7 @@ CREATE VIEW conversation_latest_message AS
         m.created_by AS latest_message_created_by,
         m.content AS latest_message_content
     FROM conversation c
-    LEFT JOIN conversation_message m ON m.conversation_id = c.conversation_id
+    INNER JOIN conversation_message m ON m.conversation_id = c.conversation_id
     ORDER BY c.conversation_id, m.created_at DESC;
 
 CREATE TABLE conversation_recipient(

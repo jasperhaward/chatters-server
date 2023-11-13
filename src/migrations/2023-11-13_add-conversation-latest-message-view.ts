@@ -6,7 +6,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .as(
       db
         .selectFrom("conversation as c")
-        .leftJoin(
+        .innerJoin(
           "conversation_message as m",
           "m.conversation_id",
           "c.conversation_id"
