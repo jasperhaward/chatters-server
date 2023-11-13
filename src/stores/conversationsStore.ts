@@ -5,7 +5,9 @@ import {
   ConversationRow,
   InsertableConversationRow,
 } from "../database";
-import { TConversationOmitRecipients } from "../schema";
+import { TConversation } from "../schema";
+
+export type TConversationWithoutRecipients = Omit<TConversation, "recipients">;
 
 export interface ConversationRowWithJoins extends ConversationRow {
   created_by_username: string;
@@ -33,7 +35,7 @@ export function hasLatestMessage(
 
 export function toConversationSchema(
   row: ConversationRowWithJoins
-): TConversationOmitRecipients {
+): TConversationWithoutRecipients {
   return {
     id: row.conversation_id,
     createdAt: row.created_at,
@@ -71,7 +73,7 @@ export async function isExistingConversation(
 export async function findConversationsByUserId(
   db: Kysely<Database>,
   userId: string
-): Promise<TConversationOmitRecipients[]> {
+): Promise<TConversationWithoutRecipients[]> {
   const rows = await db
     // conversation ids where the user is a recipient
     .with("user_conversation_id", (db) =>
@@ -129,7 +131,7 @@ export interface InsertConversationParams {
 export async function insertConversation(
   db: Kysely<Database>,
   params: InsertConversationParams
-): Promise<TConversationOmitRecipients> {
+): Promise<TConversationWithoutRecipients> {
   const values: InsertableConversationRow = {
     created_by: params.createdBy,
     title: params.title,
