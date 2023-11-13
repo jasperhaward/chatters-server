@@ -27,14 +27,9 @@ CREATE TABLE conversation_message(
 );
 
 CREATE VIEW conversation_latest_message AS
-    SELECT DISTINCT ON (c.conversation_id) c.conversation_id,
-        m.id AS latest_message_id,
-        m.created_at AS latest_message_created_at,
-        m.created_by AS latest_message_created_by,
-        m.content AS latest_message_content
-    FROM conversation c
-    INNER JOIN conversation_message m ON m.conversation_id = c.conversation_id
-    ORDER BY c.conversation_id, m.created_at DESC;
+    SELECT DISTINCT ON (m.conversation_id) *
+    FROM conversation_message m
+    ORDER BY m.conversation_id, m.created_at DESC;
 
 CREATE TABLE conversation_recipient(
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
