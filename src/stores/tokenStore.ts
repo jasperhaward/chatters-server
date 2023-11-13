@@ -3,7 +3,7 @@ import { Kysely } from "kysely";
 import { Database, InsertableTokenRow, TokenRow } from "../database";
 import { TokenPayload } from "../services";
 
-export function toTokenPayload(row: TokenRow): TokenPayload {
+function toTokenPayload(row: TokenRow): TokenPayload {
   return {
     createdAt: row.created_at,
     tokenId: row.token_id,

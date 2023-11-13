@@ -3,11 +3,11 @@ import { Kysely } from "kysely";
 import { Database, InsertableUserRow, UserRow } from "../database";
 import { TUserWithCreatedAt } from "../schema";
 
-export interface TUserWithPassword extends TUserWithCreatedAt {
+interface TUserWithPassword extends TUserWithCreatedAt {
   password: string;
 }
 
-export function toUserSchema(row: UserRow): TUserWithCreatedAt {
+function toUserSchema(row: UserRow): TUserWithCreatedAt {
   return {
     id: row.user_id,
     username: row.username,

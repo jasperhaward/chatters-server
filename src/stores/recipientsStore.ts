@@ -3,13 +3,11 @@ import { Kysely, sql } from "kysely";
 import { Database, InsertableRecipientRow, RecipientRow } from "../database";
 import { TUserWithCreatedAt } from "../schema";
 
-export interface RecipientRowWithUsername extends RecipientRow {
+interface RecipientRowWithUsername extends RecipientRow {
   username: string;
 }
 
-export function toRecipientSchema(
-  row: RecipientRowWithUsername
-): TUserWithCreatedAt {
+function toRecipientSchema(row: RecipientRowWithUsername): TUserWithCreatedAt {
   return {
     id: row.user_id,
     username: row.username,

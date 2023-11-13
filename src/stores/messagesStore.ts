@@ -3,11 +3,11 @@ import { Kysely } from "kysely";
 import { Database, InsertableMessageRow, MessageRow } from "../database";
 import { TMessage } from "../schema";
 
-export interface MessageRowWithCreatedBy extends MessageRow {
+interface MessageRowWithCreatedBy extends MessageRow {
   created_by_username: string;
 }
 
-export function toMessageSchema(row: MessageRowWithCreatedBy): TMessage {
+function toMessageSchema(row: MessageRowWithCreatedBy): TMessage {
   return {
     id: row.id,
     conversationId: row.conversation_id,
