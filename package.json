@@ -1,6 +1,6 @@
 {
   "name": "chatters-server",
-  "version": "1.9.9",
+  "version": "1.0.0",
   "scripts": {
     "dev": "node -r ts-node/register --watch src/index.ts",
     "start": "node dist/src/index.js",
