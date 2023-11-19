@@ -23,6 +23,8 @@ import {
   isExistingConversationWithRecipientIds,
   updateConversation,
   UpdateConversationParams,
+  removeRecipientFromConversation,
+  findConversationById,
 } from "../stores";
 import {
   GetConversationsSchema,
@@ -142,23 +144,20 @@ export default async function conversationsController(
 
           const recipients = await insertRecipients(trx, recipientsParams);
 
-          return {
-            ...conversation,
-            latestMessage: null,
-            recipients: recipients.filter(
-              (recipient) => recipient.id !== userId
-            ),
-          };
+          return { ...conversation, latestMessage: null, recipients };
         });
 
       reply.code(201);
 
-      dispatchServerEvent(sanitisedRecipientIds, {
-        type: "conversation/created",
-        payload: conversation,
-      });
+      // conversation recipients are dependant on the reciever of the event
+      for (const recipientId of sanitisedRecipientIds) {
+        dispatchServerEvent([recipientId], {
+          type: "conversation/created",
+          payload: removeRecipientFromConversation(conversation, recipientId),
+        });
+      }
 
-      return conversation;
+      return removeRecipientFromConversation(conversation, userId);
     }
   );
 
@@ -372,6 +371,14 @@ export default async function conversationsController(
       dispatchServerEvent(eventRecipientIds, {
         type: "recipient/added",
         payload: recipient,
+      });
+
+      const conversation = await findConversationById(db, conversationId);
+
+      // send conversation created event to the new recipient
+      dispatchServerEvent([recipientId], {
+        type: "conversation/created",
+        payload: { ...conversation, recipients },
       });
 
       return recipient;

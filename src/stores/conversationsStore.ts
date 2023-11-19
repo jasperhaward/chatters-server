@@ -68,6 +68,18 @@ function toConversationWithLatestMessageSchema(
   };
 }
 
+export function removeRecipientFromConversation(
+  conversation: TConversationWithRecipientsAndLatestMessage,
+  recipientId: string
+): TConversationWithRecipientsAndLatestMessage {
+  return {
+    ...conversation,
+    recipients: conversation.recipients.filter((recipient) => {
+      return recipient.id !== recipientId;
+    }),
+  };
+}
+
 export async function isExistingConversation(
   db: Kysely<Database>,
   conversationId: string
@@ -77,6 +89,37 @@ export async function isExistingConversation(
     .where("conversation_id", "=", conversationId)
     .selectAll()
     .executeTakeFirst());
+}
+
+export async function findConversationById(
+  db: Kysely<Database>,
+  conversationId: string
+): Promise<TConversationWithLatestMessage> {
+  const conversation = await db
+    .selectFrom("conversation as c")
+    .innerJoin("user_account as cu", "cu.user_id", "c.created_by")
+    .leftJoin(
+      "conversation_latest_message as lm",
+      "lm.conversation_id",
+      "c.conversation_id"
+    )
+    .leftJoin("user_account as lmu", "lmu.user_id", "lm.created_by")
+    .select([
+      "c.conversation_id",
+      "c.created_at",
+      "c.created_by",
+      "cu.username as created_by_username",
+      "c.title",
+      "lm.id as latest_message_id",
+      "lm.created_at as latest_message_created_at",
+      "lm.created_by as latest_message_created_by",
+      "lmu.username as latest_message_created_by_username",
+      "lm.content as latest_message_content",
+    ])
+    .where("c.conversation_id", "=", conversationId)
+    .executeTakeFirstOrThrow();
+
+  return toConversationWithLatestMessageSchema(conversation);
 }
 
 export async function findConversationsByUserId(
