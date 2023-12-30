@@ -16,13 +16,13 @@ import {
   UnauthorisedError,
 } from "../errors";
 
-export interface SocketControllerOptions extends ControllerOptions {
+export interface EventsControllerOptions extends ControllerOptions {
   clientConnections: ClientConnection[];
 }
 
-export default async function socketController(
+export default async function eventsController(
   fastify: FastifyTypebox,
-  options: SocketControllerOptions
+  options: EventsControllerOptions
 ) {
   const { db, clientConnections } = options;
 

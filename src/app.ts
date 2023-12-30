@@ -14,7 +14,7 @@ import authController from "./controllers/authController";
 import contactsController from "./controllers/contactsController";
 import conversationsController from "./controllers/conversationsController";
 import versionController from "./controllers/versionController";
-import socketController from "./controllers/socketController";
+import eventsController from "./controllers/eventsController";
 
 export default class App {
   config: Config;
@@ -57,8 +57,8 @@ export default class App {
       db: this.db,
       dispatchServerEvent: this.dispatchServerEvent,
     });
-    this.fastify.register(socketController, {
-      prefix: "/api/v1/socket",
+    this.fastify.register(eventsController, {
+      prefix: "/api/v1/events",
       db: this.db,
       clientConnections: this.clientConnections,
     });
