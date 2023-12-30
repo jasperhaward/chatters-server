@@ -68,18 +68,6 @@ function toConversationWithLatestMessageSchema(
   };
 }
 
-export function removeRecipientFromConversation(
-  conversation: TConversationWithRecipientsAndLatestMessage,
-  recipientId: string
-): TConversationWithRecipientsAndLatestMessage {
-  return {
-    ...conversation,
-    recipients: conversation.recipients.filter((recipient) => {
-      return recipient.id !== recipientId;
-    }),
-  };
-}
-
 export async function isExistingConversation(
   db: Kysely<Database>,
   conversationId: string

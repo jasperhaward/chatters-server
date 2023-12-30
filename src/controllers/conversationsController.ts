@@ -23,7 +23,6 @@ import {
   isExistingConversationWithRecipientIds,
   updateConversation,
   UpdateConversationParams,
-  removeRecipientFromConversation,
   findConversationById,
 } from "../stores";
 import {
@@ -142,15 +141,22 @@ export default async function conversationsController(
 
       reply.code(201);
 
+      const conversationWithoutRecipient = (recipientId: string) => ({
+        ...conversation,
+        recipients: conversation.recipients.filter((recipient) => {
+          return recipient.id !== recipientId;
+        }),
+      });
+
       // conversation recipients are dependant on the reciever of the event
       for (const recipientId of sanitisedRecipientIds) {
         dispatchServerEvent([recipientId], {
           type: "conversation/created",
-          payload: removeRecipientFromConversation(conversation, recipientId),
+          payload: conversationWithoutRecipient(recipientId),
         });
       }
 
-      return removeRecipientFromConversation(conversation, userId);
+      return conversationWithoutRecipient(userId);
     }
   );
 
