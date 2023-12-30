@@ -36,10 +36,13 @@ export const UpdateConversationSchema = {
   }),
   body: Type.Object({
     // for now the only updateable property is the title so we can mark it as required
-    title: Type.String({
-      minLength: 1,
-      maxLength: config.maxConversationTitleLength,
-    }),
+    title: Type.Union([
+      Type.String({
+        minLength: 1,
+        maxLength: config.maxConversationTitleLength,
+      }),
+      Type.Null(),
+    ]),
   }),
   response: {
     "2xx": Conversation,
