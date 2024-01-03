@@ -88,8 +88,6 @@ export const CreateConversationRecipientSchema = {
 export const DeleteConversationRecipientSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
-  }),
-  body: Type.Object({
     recipientId: Type.String({ format: "uuid" }),
   }),
 } satisfies FastifySchema;

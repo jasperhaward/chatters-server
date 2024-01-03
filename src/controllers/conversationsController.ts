@@ -378,15 +378,14 @@ export default async function conversationsController(
   );
 
   fastify.delete(
-    "/:conversationId/recipients",
+    "/:conversationId/recipients/:recipientId",
     {
       schema: DeleteConversationRecipientSchema,
       onRequest: authentication(db),
     },
     async (request, reply) => {
       const { userId } = request.token;
-      const { conversationId } = request.params;
-      const { recipientId } = request.body;
+      const { conversationId, recipientId } = request.params;
 
       if (!(await isExistingConversation(db, conversationId))) {
         throw new BadRequestError(
