@@ -14,7 +14,7 @@ import {
   TConversation,
   TConversationWithRecipientsAndLatestMessage,
   TMessage,
-  TUser,
+  TUserWithCreatedAt,
 } from "./schema";
 
 export type Nullable<T> = {
@@ -46,12 +46,12 @@ export interface MessageCreatedEvent {
 
 export interface RecipientAddedEvent {
   type: "recipient/added";
-  payload: TUser;
+  payload: TUserWithCreatedAt;
 }
 
 export interface RecipientRemovedEvent {
   type: "recipient/removed";
-  payload: TUser;
+  payload: TUserWithCreatedAt;
 }
 
 export interface ErrorEvent {
