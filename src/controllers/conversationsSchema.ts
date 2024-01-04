@@ -6,7 +6,7 @@ import {
   Conversation,
   ConversationWithRecipientsAndLatestMessage,
   Message,
-  UserWithCreatedAt,
+  Recipient,
 } from "../schema";
 
 export const GetConversationsSchema = {
@@ -81,7 +81,7 @@ export const CreateConversationRecipientSchema = {
     recipientId: Type.String({ format: "uuid" }),
   }),
   response: {
-    "2xx": UserWithCreatedAt,
+    "2xx": Recipient,
   },
 } satisfies FastifySchema;
 

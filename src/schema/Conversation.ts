@@ -1,5 +1,6 @@
 import { Type, Static } from "@sinclair/typebox";
-import { User, UserWithCreatedAt } from "./User";
+import { User } from "./User";
+import { Recipient } from "./Recipient";
 import { Message } from "./Message";
 
 export const Conversation = Type.Object({
@@ -14,7 +15,7 @@ export type TConversation = Static<typeof Conversation>;
 export const ConversationWithRecipientsAndLatestMessage = Type.Intersect([
   Conversation,
   Type.Object({
-    recipients: Type.Array(UserWithCreatedAt),
+    recipients: Type.Array(Recipient),
     latestMessage: Type.Union([Message, Type.Null()]),
   }),
 ]);

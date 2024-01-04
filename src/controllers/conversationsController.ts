@@ -8,7 +8,7 @@ import {
   findConversationsByUserId,
   insertConversation,
   findRecipientsByConversationId,
-  isRecipientInConversation,
+  isUserInRecipients,
   insertRecipients,
   findMessagesByConversationId,
   insertMessage,
@@ -183,7 +183,7 @@ export default async function conversationsController(
         conversationId
       );
 
-      if (!isRecipientInConversation(recipients, userId)) {
+      if (!isUserInRecipients(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           "User must be recipient of conversation."
@@ -232,7 +232,7 @@ export default async function conversationsController(
         conversationId
       );
 
-      if (!isRecipientInConversation(recipients, userId)) {
+      if (!isUserInRecipients(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           "User must be recipient of conversation."
@@ -266,7 +266,7 @@ export default async function conversationsController(
         conversationId
       );
 
-      if (!isRecipientInConversation(recipients, userId)) {
+      if (!isUserInRecipients(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           "User must be recipient of conversation."
@@ -319,7 +319,7 @@ export default async function conversationsController(
         conversationId
       );
 
-      if (!isRecipientInConversation(recipients, userId)) {
+      if (!isUserInRecipients(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           "User must be recipient of conversation."
@@ -333,7 +333,7 @@ export default async function conversationsController(
         );
       }
 
-      if (isRecipientInConversation(recipients, recipientId)) {
+      if (isUserInRecipients(recipients, recipientId)) {
         throw new BadRequestError(
           "UserIsConversationRecipient",
           `User with id '${recipientId}' is already recipient of conversation.`
@@ -399,7 +399,7 @@ export default async function conversationsController(
         conversationId
       );
 
-      if (!isRecipientInConversation(recipients, userId)) {
+      if (!isUserInRecipients(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           "User must be recipient of conversation."
@@ -420,7 +420,7 @@ export default async function conversationsController(
         );
       }
 
-      if (!isRecipientInConversation(recipients, recipientId)) {
+      if (!isUserInRecipients(recipients, recipientId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
           `User with id '${recipientId}' must be recipient of conversation.`
