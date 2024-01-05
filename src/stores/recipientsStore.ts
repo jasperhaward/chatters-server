@@ -26,7 +26,7 @@ export async function findRecipientsByConversationId(
     .selectAll("r")
     .select("u.username")
     .where("r.conversation_id", "=", conversationId)
-    .orderBy("r.created_at")
+    .orderBy("u.username")
     .execute();
 
   return rows.map(toRecipientSchema);
@@ -99,6 +99,7 @@ export async function insertRecipients(
     .innerJoin("user_account as u", "u.user_id", "r.user_id")
     .selectAll("r")
     .select("u.username")
+    .orderBy("u.username")
     .execute();
 
   return rows.map(toRecipientSchema);
