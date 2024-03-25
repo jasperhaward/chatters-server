@@ -62,10 +62,7 @@ export default async function conversationsController(
           conversation.id
         );
 
-        conversations.push({
-          ...conversation,
-          recipients: recipients.filter((recipient) => recipient.id !== userId),
-        });
+        conversations.push({ ...conversation, recipients });
       }
 
       return conversations;
@@ -136,27 +133,20 @@ export default async function conversationsController(
 
           const recipients = await insertRecipients(trx, recipientsParams);
 
-          return { ...conversation, latestMessage: null, recipients };
+          return { ...conversation, recipients, latestMessage: null };
         });
 
       reply.code(201);
-
-      const conversationWithoutRecipient = (recipientId: string) => ({
-        ...conversation,
-        recipients: conversation.recipients.filter((recipient) => {
-          return recipient.id !== recipientId;
-        }),
-      });
 
       // conversation recipients are dependant on the reciever of the event
       for (const recipientId of sanitisedRecipientIds) {
         dispatchServerEvent([recipientId], {
           type: "conversation/created",
-          payload: conversationWithoutRecipient(recipientId),
+          payload: conversation,
         });
       }
 
-      return conversationWithoutRecipient(userId);
+      return conversation;
     }
   );
 
