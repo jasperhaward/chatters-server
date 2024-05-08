@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { PoolConfig } from "pg";
 import { parseEnv } from "./utils";
 

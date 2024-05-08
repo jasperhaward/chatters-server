@@ -2,7 +2,7 @@
   "name": "chatters-server",
   "version": "1.0.0",
   "scripts": {
-    "dev": "node -r ts-node/register --watch src/index.ts",
+    "dev": "node --env-file=.env -r ts-node/register --watch src/index.ts",
     "start": "node dist/src/index.js",
     "build": "rm -rf dist && tsc",
     "migrations": "node -r ts-node/register src/migrations/execute.ts"
@@ -13,7 +13,6 @@
     "@fastify/swagger-ui": "^1.9.3",
     "@fastify/websocket": "^8.1.0",
     "@sinclair/typebox": "^0.25.24",
-    "dotenv": "^16.3.1",
     "fastify": "^4.19.2",
     "jsonwebtoken": "^9.0.1",
     "kysely": "^0.23.5",
