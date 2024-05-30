@@ -24,6 +24,7 @@ import {
   updateConversation,
   UpdateConversationParams,
   findConversationById,
+  sortRecipientsByUsername,
 } from "../stores";
 import {
   GetConversationsSchema,
@@ -138,13 +139,10 @@ export default async function conversationsController(
 
       reply.code(201);
 
-      // conversation recipients are dependant on the reciever of the event
-      for (const recipientId of sanitisedRecipientIds) {
-        dispatchServerEvent([recipientId], {
-          type: "conversation/created",
-          payload: conversation,
-        });
-      }
+      dispatchServerEvent(sanitisedRecipientIds, {
+        type: "conversation/created",
+        payload: conversation,
+      });
 
       return conversation;
     }
@@ -357,10 +355,17 @@ export default async function conversationsController(
 
       const conversation = await findConversationById(db, conversationId);
 
+      const updatedRecipients = [...recipients, recipient].sort(
+        sortRecipientsByUsername
+      );
+
       // send conversation created event to the new recipient
       dispatchServerEvent([recipientId], {
         type: "conversation/created",
-        payload: { ...conversation, recipients },
+        payload: {
+          ...conversation,
+          recipients: updatedRecipients,
+        },
       });
 
       return recipient;

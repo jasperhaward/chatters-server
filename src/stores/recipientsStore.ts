@@ -104,3 +104,11 @@ export async function insertRecipients(
 
   return rows.map(toRecipientSchema);
 }
+
+export function sortRecipientsByUsername(a: TRecipient, b: TRecipient) {
+  if (a.username === b.username) {
+    return 0;
+  }
+
+  return a.username < b.username ? -1 : 1;
+}
