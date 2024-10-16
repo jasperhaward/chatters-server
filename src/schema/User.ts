@@ -9,9 +9,7 @@ export type TUser = Static<typeof User>;
 
 export const UserWithCreatedAt = Type.Intersect([
   User,
-  Type.Object({
-    createdAt: Type.String(),
-  }),
+  Type.Object({ createdAt: Type.String() }),
 ]);
 
 export type TUserWithCreatedAt = Static<typeof UserWithCreatedAt>;

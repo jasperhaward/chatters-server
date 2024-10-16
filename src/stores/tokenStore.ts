@@ -1,9 +1,9 @@
 import { Kysely } from "kysely";
 
-import { Database, InsertableTokenRow, TokenRow } from "../database";
+import { Database, InsertableUserTokenRow, UserTokenRow } from "../database";
 import { TokenPayload } from "../services";
 
-function toTokenPayload(row: TokenRow): TokenPayload {
+function toTokenPayload(row: UserTokenRow): TokenPayload {
   return {
     createdAt: row.created_at,
     tokenId: row.token_id,
@@ -39,7 +39,7 @@ export async function insertToken(
   db: Kysely<Database>,
   userId: string
 ): Promise<TokenPayload> {
-  const values: InsertableTokenRow = {
+  const values: InsertableUserTokenRow = {
     user_id: userId,
   };
 

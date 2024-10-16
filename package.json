@@ -5,7 +5,10 @@
     "dev": "node --env-file=.env -r ts-node/register --watch src/index.ts",
     "start": "node dist/src/index.js",
     "build": "rm -rf dist && tsc",
-    "migrations": "node -r ts-node/register src/migrations/execute.ts"
+    "migrations-up:dev": "node --env-file=.env -r ts-node/register src/migrations/execute.ts up",
+    "migrations-down:dev": "node --env-file=.env -r ts-node/register src/migrations/execute.ts down",
+    "migrations-up": "node dist/src/migrations/execute.js up",
+    "migrations-down": "node dist/src/migrations/execute.js down"
   },
   "dependencies": {
     "@fastify/cors": "^8.3.0",
