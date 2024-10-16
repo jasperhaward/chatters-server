@@ -32,4 +32,5 @@ CREATE VIEW conversation_recipient_es AS
 CREATE VIEW conversation_latest_message_es AS
     SELECT DISTINCT ON (conversation_id) *
     FROM conversation_event
+    WHERE event_type = 'MessageCreated'
     ORDER BY conversation_id, created_at DESC 
