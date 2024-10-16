@@ -1,14 +1,18 @@
 CREATE TABLE user_account(
     user_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at timestamptz DEFAULT current_timestamp,
     username varchar(50) UNIQUE NOT NULL,
-    password varchar(250) NOT NULL
+    created_at timestamptz DEFAULT current_timestamp
+);
+
+CREATE TABLE user_password(
+    user_id uuid PRIMARY KEY REFERENCES user_account (user_id)
+    password_hash varchar(250) NOT NULL
 );
 
 CREATE TABLE user_token(
     token_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    created_at timestamptz DEFAULT current_timestamp,
-    user_id uuid REFERENCES user_account (user_id)
+    user_id uuid REFERENCES user_account (user_id),
+    created_at timestamptz DEFAULT current_timestamp
 );
 
 CREATE TABLE conversation(
