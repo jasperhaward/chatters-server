@@ -9,7 +9,15 @@ import {
 } from "kysely";
 import config from "../config";
 
-async function migrateToLatest() {
+async function execute() {
+  const action = process.argv[2];
+
+  if (action !== "up" && action !== "down") {
+    throw new Error(`Available actions: 'up', 'down' - recieved ${action}`);
+  }
+
+  const isDownAction = action === "down";
+
   const db = new Kysely<any>({
     dialect: new PostgresDialect({
       pool: new Pool(config.database),
@@ -25,11 +33,17 @@ async function migrateToLatest() {
     }),
   });
 
-  const { error, results } = await migrator.migrateToLatest();
+  const { error, results } = isDownAction
+    ? await migrator.migrateDown()
+    : await migrator.migrateToLatest();
 
   results?.forEach((m) => {
     if (m.status === "Success") {
-      console.log(`Migration '${m.migrationName}' was executed successfully`);
+      console.log(
+        `Migration '${m.migrationName}' was ${
+          isDownAction ? "reverted" : "executed"
+        } successfully`
+      );
     } else if (m.status === "Error") {
       console.error(`Migration '${m.migrationName}' failed to execute`);
     }
@@ -43,4 +57,4 @@ async function migrateToLatest() {
   await db.destroy();
 }
 
-migrateToLatest();
+execute();
