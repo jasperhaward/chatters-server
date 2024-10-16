@@ -1,23 +1,27 @@
 import { Kysely } from "kysely";
 
-import { Database, InsertableUserRow, UserRow } from "../database";
-import { TUserWithCreatedAt } from "../schema";
+import {
+  Database,
+  InsertableUserPasswordRow,
+  UserAccountRow,
+} from "../database";
+import { TUser, TUserWithCreatedAt } from "../schema";
 
-interface TUserWithPassword extends TUserWithCreatedAt {
-  password: string;
-}
-
-function toUserSchema(row: UserRow): TUserWithCreatedAt {
+function toUserSchema(row: UserAccountRow): TUser {
   return {
     id: row.user_id,
     username: row.username,
-    createdAt: row.created_at,
   };
 }
 
-export async function findUsers(
-  db: Kysely<Database>
-): Promise<TUserWithCreatedAt[]> {
+function toUserWithCreatedAtSchema(row: UserAccountRow): TUserWithCreatedAt {
+  return {
+    createdAt: row.created_at,
+    ...toUserSchema(row),
+  };
+}
+
+export async function findUsers(db: Kysely<Database>): Promise<TUser[]> {
   const rows = await db
     .selectFrom("user_account")
     .selectAll()
@@ -30,7 +34,7 @@ export async function findUsers(
 export async function findUsersByUserIds(
   db: Kysely<Database>,
   userIds: string[]
-): Promise<TUserWithCreatedAt[]> {
+): Promise<TUser[]> {
   const rows = await db
     .selectFrom("user_account")
     .selectAll()
@@ -40,10 +44,23 @@ export async function findUsersByUserIds(
   return rows.map(toUserSchema);
 }
 
+export async function findUserByUserId(
+  db: Kysely<Database>,
+  userId: string
+): Promise<TUser | null> {
+  const users = await findUsersByUserIds(db, [userId]);
+
+  if (users.length === 0) {
+    return null;
+  }
+
+  return users[0];
+}
+
 export async function findUserByUsername(
   db: Kysely<Database>,
   username: string
-): Promise<TUserWithPassword | null> {
+): Promise<TUserWithCreatedAt | null> {
   const row = await db
     .selectFrom("user_account")
     .selectAll()
@@ -54,48 +71,54 @@ export async function findUserByUsername(
     return null;
   }
 
-  return {
-    ...toUserSchema(row),
-    password: row.password,
-  };
+  // this function is only used in the /login and /register endpoints,
+  // where it is useful to have the createdAt field
+  return toUserWithCreatedAtSchema(row);
 }
 
-export async function findUserByUserId(
+export async function findUserPasswordHashByUserId(
   db: Kysely<Database>,
   userId: string
-): Promise<TUserWithCreatedAt | null> {
+): Promise<string> {
   const row = await db
-    .selectFrom("user_account")
+    .selectFrom("user_password")
     .selectAll()
     .where("user_id", "=", userId)
-    .executeTakeFirst();
+    .executeTakeFirstOrThrow();
 
-  if (!row) {
-    return null;
-  }
-
-  return toUserSchema(row);
-}
-
-export interface InsertUserParams {
-  username: string;
-  hashedPassword: string;
+  return row.password_hash;
 }
 
 export async function insertUser(
   db: Kysely<Database>,
-  params: InsertUserParams
+  username: string
 ): Promise<TUserWithCreatedAt> {
-  const values: InsertableUserRow = {
-    username: params.username,
-    password: params.hashedPassword,
-  };
-
   const row = await db
     .insertInto("user_account")
-    .values(values)
+    .values({ username })
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  return toUserSchema(row);
+  return toUserWithCreatedAtSchema(row);
+}
+
+export interface InsertUserPasswordParams {
+  userId: string;
+  passwordHash: string;
+}
+
+export async function insertUserPassword(
+  db: Kysely<Database>,
+  params: InsertUserPasswordParams
+) {
+  const values: InsertableUserPasswordRow = {
+    user_id: params.userId,
+    password_hash: params.passwordHash,
+  };
+
+  await db
+    .insertInto("user_password")
+    .values(values)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }

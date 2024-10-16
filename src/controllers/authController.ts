@@ -3,10 +3,12 @@ import authentication from "../hooks/authenticationHook";
 
 import { encryptPassword, verifyPassword, generateToken } from "../services";
 import {
-  InsertUserParams,
   insertUser,
   findUserByUsername,
   deleteTokenByTokenId,
+  findUserPasswordHashByUserId,
+  insertUserPassword,
+  InsertUserPasswordParams,
 } from "../stores";
 import { BadRequestError, UnauthorisedError } from "../errors";
 import { RegisterSchema, LoginSchema } from "./authSchema";
@@ -37,14 +39,22 @@ export default async function authController(
         );
       }
 
+      const user = await db.transaction().execute(async (trx) => {
+        const user = await insertUser(trx, username);
+
+        const passwordParams: InsertUserPasswordParams = {
+          userId: user.id,
+          passwordHash: encryptPassword(password),
+        };
+
+        await insertUserPassword(trx, passwordParams);
+
+        return user;
+      });
+
       reply.code(201);
 
-      const params: InsertUserParams = {
-        username,
-        hashedPassword: encryptPassword(password),
-      };
-
-      return await insertUser(db, params);
+      return user;
     }
   );
 
@@ -53,7 +63,13 @@ export default async function authController(
 
     const user = await findUserByUsername(db, username);
 
-    if (!user || !verifyPassword(user.password, password)) {
+    if (!user) {
+      throw new UnauthorisedError();
+    }
+
+    const passwordHash = await findUserPasswordHashByUserId(db, user.id);
+
+    if (!verifyPassword(passwordHash, password)) {
       throw new UnauthorisedError();
     }
 

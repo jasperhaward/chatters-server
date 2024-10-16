@@ -1,23 +1,30 @@
 import { GeneratedAlways, Insertable, Selectable } from "kysely";
 
-export interface UserTable {
+export interface UserAccountTable {
   user_id: GeneratedAlways<string>;
-  created_at: GeneratedAlways<string>;
   username: string;
-  password: string;
-}
-
-export type UserRow = Selectable<UserTable>;
-export type InsertableUserRow = Insertable<UserTable>;
-
-export interface TokenTable {
-  token_id: GeneratedAlways<string>;
   created_at: GeneratedAlways<string>;
-  user_id: string;
 }
 
-export type TokenRow = Selectable<TokenTable>;
-export type InsertableTokenRow = Insertable<TokenTable>;
+export type UserAccountRow = Selectable<UserAccountTable>;
+export type InsertableUserAccountRow = Insertable<UserAccountTable>;
+
+export interface UserTokenTable {
+  token_id: GeneratedAlways<string>;
+  user_id: string;
+  created_at: GeneratedAlways<string>;
+}
+
+export type UserTokenRow = Selectable<UserTokenTable>;
+export type InsertableUserTokenRow = Insertable<UserTokenTable>;
+
+export interface UserPasswordTable {
+  user_id: string;
+  password_hash: string;
+}
+
+export type UserPasswordRow = Selectable<UserPasswordTable>;
+export type InsertableUserPasswordRow = Insertable<UserPasswordTable>;
 
 export interface ConversationTable {
   conversation_id: GeneratedAlways<string>;
@@ -61,8 +68,9 @@ export type RecipientRow = Selectable<RecipientTable>;
 export type InsertableRecipientRow = Insertable<RecipientTable>;
 
 export interface Database {
-  user_account: UserTable;
-  user_token: TokenTable;
+  user_account: UserAccountTable;
+  user_password: UserPasswordTable;
+  user_token: UserTokenTable;
   conversation: ConversationTable;
   conversation_recipient: RecipientTable;
   conversation_message: MessageTable;
