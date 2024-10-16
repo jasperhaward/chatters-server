@@ -1,3 +1,20 @@
+CREATE TABLE user_account(
+    user_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username varchar(50) UNIQUE NOT NULL,
+    created_at timestamptz DEFAULT current_timestamp
+);
+
+CREATE TABLE user_password(
+    user_id uuid PRIMARY KEY REFERENCES user_account (user_id)
+    password_hash varchar(250) NOT NULL
+);
+
+CREATE TABLE user_token(
+    token_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id uuid REFERENCES user_account (user_id),
+    created_at timestamptz DEFAULT current_timestamp
+);
+
 CREATE TABLE conversation_event(
     id serial PRIMARY KEY,
     event_type varchar(30) NOT NULL,
@@ -32,5 +49,6 @@ CREATE VIEW conversation_recipient_es AS
 CREATE VIEW conversation_latest_message_es AS
     SELECT DISTINCT ON (conversation_id) *
     FROM conversation_event
+    INNER JOIN user_account ON user_id = created_by
     WHERE event_type = 'MessageCreated'
     ORDER BY conversation_id, created_at DESC 
