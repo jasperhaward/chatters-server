@@ -6,7 +6,6 @@ type ErrorCode =
   | "MinimumRecipientsRequired"
   | "ExistingDirectConversation"
   | "CannotCreateDirectConversation"
-  | "CannotCreateGroupConversation"
   | "UserNotFound"
   | "RecipientNotFound"
   | "ConversationNotFound"

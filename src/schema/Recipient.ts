@@ -1,9 +1,11 @@
 import { Type, Static } from "@sinclair/typebox";
-import { UserWithCreatedAt } from "./User";
+import { User, UserWithCreatedAt } from "./User";
 
 export const Recipient = Type.Intersect([
   UserWithCreatedAt,
-  Type.Object({ conversationId: Type.String({ format: "uuid" }) }),
+  Type.Object({
+    createdBy: User,
+  }),
 ]);
 
 export type TRecipient = Static<typeof Recipient>;
