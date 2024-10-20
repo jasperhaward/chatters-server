@@ -1,11 +1,37 @@
+import { SwaggerOptions } from "@fastify/swagger";
 import { PoolConfig } from "pg";
+import packageJson from "../package.json";
 import { parseEnv } from "./utils";
 
+const environment = parseEnv("ENVIRONMENT", "string");
+
+const swaggerConfig: SwaggerOptions = {
+  openapi: {
+    info: {
+      title: `Chatters API - ${environment}`,
+      version: packageJson.version,
+    },
+    components: {
+      securitySchemes: {
+        token: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [{ token: [] }],
+  },
+};
+
 export interface Config {
+  name: string;
+  version: string;
   environment: string;
   port: number;
   host: string;
   origins: RegExp[];
+  swagger: SwaggerOptions;
   database: PoolConfig;
   authTokenSecret: string;
   authTokenExpiryDuration: number;
@@ -21,7 +47,9 @@ export interface Config {
 }
 
 const config: Readonly<Config> = {
-  environment: parseEnv("ENVIRONMENT", "string"),
+  name: packageJson.name,
+  version: packageJson.version,
+  environment,
   host: parseEnv("HOST", "string"),
   port: parseEnv("PORT", "number"),
   origins: [
@@ -29,6 +57,7 @@ const config: Readonly<Config> = {
     /^http:\/\/server(.local)?:[0-9]{4}$/,
     /^https:\/\/(dev-)?chatters.jasperh.uk$/,
   ],
+  swagger: swaggerConfig,
   database: {
     host: parseEnv("POSTGRES_HOST", "string"),
     port: parseEnv("POSTGRES_PORT", "number"),
