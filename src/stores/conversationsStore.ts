@@ -58,7 +58,6 @@ export async function findConversationByConversationId(
 ): Promise<TConversationWithoutRecipients | null> {
   const row = await db
     .selectFrom("conversation_creation_es as c")
-    .innerJoin("user_account as cu", "cu.user_id", "c.created_by")
     .leftJoin(
       "conversation_title_es as t",
       "t.conversation_id",
@@ -69,17 +68,16 @@ export async function findConversationByConversationId(
       "m.conversation_id",
       "c.conversation_id"
     )
-    .leftJoin("user_account as mu", "mu.user_id", "m.created_by")
     .select([
       "c.conversation_id",
       "c.created_at",
       "c.created_by",
-      "cu.username as created_by_username",
+      "c.created_by_username",
       "t.title",
       "m.id as latest_message_id",
       "m.created_at as latest_message_created_at",
       "m.created_by as latest_message_created_by",
-      "mu.username as latest_message_created_by_username",
+      "m.created_by_username as latest_message_created_by_username",
       "m.message as latest_message_content",
     ])
     .where("c.conversation_id", "=", conversationId)
