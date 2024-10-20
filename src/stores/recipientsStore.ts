@@ -29,12 +29,10 @@ export async function findRecipientsByConversationId(
   conversationId: string
 ): Promise<TRecipient[]> {
   const rows = await db
-    .selectFrom("conversation_recipient_es as r")
-    .innerJoin("user_account as u", "u.user_id", "r.recipient_id")
-    .selectAll("r")
-    .select("u.username")
-    .where("r.conversation_id", "=", conversationId)
-    .orderBy("u.username")
+    .selectFrom("conversation_recipient_es")
+    .selectAll()
+    .where("conversation_id", "=", conversationId)
+    .orderBy("recipient_username")
     .execute();
 
   return rows.map((row) => ({
