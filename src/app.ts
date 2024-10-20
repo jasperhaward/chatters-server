@@ -8,7 +8,7 @@ import swaggerUi from "@fastify/swagger-ui";
 
 import { Config } from "./config";
 import { Database } from "./database";
-import { TConversationEvent } from "./schema";
+import { TUiConversationEvent } from "./schema";
 import { FastifyTypebox, ClientConnection } from "./types";
 
 import authController from "./controllers/authController";
@@ -95,7 +95,7 @@ export default class App {
 
   dispatchEvent = (
     recipientIds: string[],
-    events: TConversationEvent | TConversationEvent[]
+    events: TUiConversationEvent | TUiConversationEvent[]
   ) => {
     for (const connection of this.clientConnections) {
       if (recipientIds.includes(connection.userId)) {

@@ -5,22 +5,25 @@ import authentication from "../hooks/authenticationHook";
 import {
   ConversationEventType,
   TConversation,
-  TConversationEvent,
+  TUiConversationEvent,
+  TAddedToConversationEvent,
   TRecipient,
 } from "../schema";
 import { BadRequestError } from "../errors";
 import { removeDuplicates } from "../utils";
 import {
-  findRecipientsByConversationId,
   isUserInRecipients,
-  isExistingConversation,
   findUsersByUserIds,
+  findUserByUserId,
+  isExistingConversation,
   isExistingConversationWithRecipientIds,
-  findConversationsByUserIdEs,
+  findConversationsByUserId,
+  findConversationByConversationId,
+  findEventsByConversationId,
+  sortRecipientsByUsername,
+  findRecipientsByConversationId,
   insertEvent,
   insertEvents,
-  findEventsByConversationId,
-  findUserByUserId,
 } from "../stores";
 import {
   GetConversationsSchema,
@@ -35,7 +38,7 @@ import {
 export interface ConversationsControllerOptions extends ControllerOptions {
   dispatchEvent: (
     recipientIds: string[],
-    events: TConversationEvent | TConversationEvent[]
+    events: TUiConversationEvent | TUiConversationEvent[]
   ) => void;
 }
 
@@ -47,7 +50,7 @@ export default async function conversationsController(
 
   function dispatchEvent(
     recipients: TRecipient[] | string[],
-    events: TConversationEvent | TConversationEvent[]
+    events: TUiConversationEvent | TUiConversationEvent[]
   ) {
     const recipientIds = recipients.map((recipient) =>
       typeof recipient === "string" ? recipient : recipient.id
@@ -64,10 +67,7 @@ export default async function conversationsController(
 
       const conversations: TConversation[] = [];
 
-      for (const conversation of await findConversationsByUserIdEs(
-        db,
-        userId
-      )) {
+      for (const conversation of await findConversationsByUserId(db, userId)) {
         const recipients = await findRecipientsByConversationId(
           db,
           conversation.conversationId
@@ -117,7 +117,7 @@ export default async function conversationsController(
       ) {
         throw new BadRequestError(
           "ExistingDirectConversation",
-          `Direct conversation between you and '${sanitisedRecipientIds[1]}' already exists.`
+          `Direct conversation between user and '${sanitisedRecipientIds[1]}' already exists.`
         );
       }
 
@@ -280,7 +280,12 @@ export default async function conversationsController(
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
-      if (!(await isExistingConversation(db, conversationId))) {
+      const conversation = await findConversationByConversationId(
+        db,
+        conversationId
+      );
+
+      if (!conversation) {
         throw new BadRequestError(
           "ConversationNotFound",
           `Conversation with id '${conversationId}' not found.`
@@ -322,8 +327,24 @@ export default async function conversationsController(
 
       dispatchEvent(recipients, recipientEvent);
 
-      // TODO: send conversation created event to new recipient
-      dispatchEvent([recipientId], recipientEvent);
+      const addedRecipient: TRecipient = {
+        ...recipientEvent.recipient,
+        createdAt: recipientEvent.createdAt,
+        createdBy: recipientEvent.createdBy,
+      };
+
+      const updatedRecipients = [...recipients, addedRecipient].sort(
+        sortRecipientsByUsername
+      );
+
+      // when a recipient is added to a conversation, send the new recipient full conversation details
+      const addedEvent: TAddedToConversationEvent = {
+        type: ConversationEventType.AddedToConversation,
+        ...conversation,
+        recipients: updatedRecipients,
+      };
+
+      dispatchEvent([recipientId], addedEvent);
 
       return recipientEvent;
     }

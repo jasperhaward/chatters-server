@@ -51,3 +51,11 @@ export async function findRecipientsByConversationId(
 export function isUserInRecipients(recipients: TRecipient[], userId: string) {
   return recipients.some((recipient) => recipient.id === userId);
 }
+
+export function sortRecipientsByUsername(a: TRecipient, b: TRecipient) {
+  if (a.username === b.username) {
+    return 0;
+  }
+
+  return a.username < b.username ? -1 : 1;
+}

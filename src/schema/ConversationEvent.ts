@@ -1,5 +1,6 @@
 import { Type, Static } from "@sinclair/typebox";
 import { User } from "./User";
+import { TConversation } from "./Conversation";
 
 export enum ConversationEventType {
   ConversationCreated = "ConversationCreated",
@@ -7,9 +8,8 @@ export enum ConversationEventType {
   MessageCreated = "MessageCreated",
   RecipientCreated = "RecipientCreated",
   RecipientRemoved = "RecipientRemoved",
+  AddedToConversation = "AddedToConversation",
 }
-
-// Common fields between all ConversationEvent types
 
 export const ConversationEventShared = Type.Object({
   id: Type.Number(),
@@ -21,8 +21,6 @@ export const ConversationEventShared = Type.Object({
 
 export type TConversationEventShared = Static<typeof ConversationEventShared>;
 
-// ConversationCreatedEvent
-
 export const ConversationCreatedEvent = Type.Intersect([
   ConversationEventShared,
   Type.Object({
@@ -31,8 +29,6 @@ export const ConversationCreatedEvent = Type.Intersect([
 ]);
 
 export type TConversationCreatedEvent = Static<typeof ConversationCreatedEvent>;
-
-// TitleUpdatedEvent
 
 export const TitleUpdatedEvent = Type.Intersect([
   ConversationEventShared,
@@ -44,8 +40,6 @@ export const TitleUpdatedEvent = Type.Intersect([
 
 export type TTitleUpdatedEvent = Static<typeof TitleUpdatedEvent>;
 
-// MessageCreatedEvent
-
 export const MessageCreatedEvent = Type.Intersect([
   ConversationEventShared,
   Type.Object({
@@ -56,8 +50,6 @@ export const MessageCreatedEvent = Type.Intersect([
 
 export type TMessageCreatedEvent = Static<typeof MessageCreatedEvent>;
 
-// RecipientCreatedEvent
-
 export const RecipientCreatedEvent = Type.Intersect([
   ConversationEventShared,
   Type.Object({
@@ -67,8 +59,6 @@ export const RecipientCreatedEvent = Type.Intersect([
 ]);
 
 export type TRecipientCreatedEvent = Static<typeof RecipientCreatedEvent>;
-
-// RecipientRemovedEvent
 
 export const RecipientRemovedEvent = Type.Intersect([
   ConversationEventShared,
@@ -91,3 +81,11 @@ export const ConversationEvent = Type.Union([
 ]);
 
 export type TConversationEvent = Static<typeof ConversationEvent>;
+
+export interface TAddedToConversationEvent extends TConversation {
+  type: ConversationEventType.AddedToConversation;
+}
+
+export type TUiConversationEvent =
+  | TConversationEvent
+  | TAddedToConversationEvent;

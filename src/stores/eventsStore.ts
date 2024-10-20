@@ -66,6 +66,8 @@ function toConversationEventSchema(
           username: row.recipient_username!,
         },
       };
+    default:
+      throw new Error(`Invalid event found ${row.id} - ${row.event_type}`);
   }
 }
 
@@ -86,52 +88,42 @@ export async function findEventsByConversationId(
   return rows.map(toConversationEventSchema);
 }
 
-interface ConversationCreatedEventParameters {
-  conversationId: string;
-  type: ConversationEventType.ConversationCreated;
-  createdBy: string;
-}
-
-interface TitleUpdatedEventParameters {
-  conversationId: string;
-  type: ConversationEventType.ConversationTitleUpdated;
-  createdBy: string;
-  title: string | null;
-}
-
-interface MessageCreatedEventParameters {
-  conversationId: string;
-  type: ConversationEventType.MessageCreated;
-  createdBy: string;
-  message: string;
-}
-
-interface RecipientCreatedEventParameters {
-  conversationId: string;
-  type: ConversationEventType.RecipientCreated;
-  createdBy: string;
-  recipientId: string;
-}
-
-interface RecipientRemovedEventParameters {
-  conversationId: string;
-  type: ConversationEventType.RecipientRemoved;
-  createdBy: string;
-  recipientId: string;
-}
-
-type ConversationEventParameters =
-  | ConversationCreatedEventParameters
-  | TitleUpdatedEventParameters
-  | MessageCreatedEventParameters
-  | RecipientCreatedEventParameters
-  | RecipientRemovedEventParameters;
+type InsertConversationEventParams =
+  | {
+      conversationId: string;
+      type: ConversationEventType.ConversationCreated;
+      createdBy: string;
+    }
+  | {
+      conversationId: string;
+      type: ConversationEventType.ConversationTitleUpdated;
+      createdBy: string;
+      title: string | null;
+    }
+  | {
+      conversationId: string;
+      type: ConversationEventType.MessageCreated;
+      createdBy: string;
+      message: string;
+    }
+  | {
+      conversationId: string;
+      type: ConversationEventType.RecipientCreated;
+      createdBy: string;
+      recipientId: string;
+    }
+  | {
+      conversationId: string;
+      type: ConversationEventType.RecipientRemoved;
+      createdBy: string;
+      recipientId: string;
+    };
 
 type FilterByType<E, T> = Extract<E, { type: T }>;
 
 export async function insertEvents<T extends ConversationEventType>(
   db: Kysely<Database>,
-  events: FilterByType<ConversationEventParameters, T>[]
+  events: FilterByType<InsertConversationEventParams, T>[]
 ): Promise<FilterByType<TConversationEvent, T>[]> {
   const values = events.map<InsertableConversationEventRow>((event) => ({
     conversation_id: event.conversationId,
@@ -160,7 +152,7 @@ export async function insertEvents<T extends ConversationEventType>(
 
 export async function insertEvent<T extends ConversationEventType>(
   db: Kysely<Database>,
-  event: FilterByType<ConversationEventParameters, T>
+  event: FilterByType<InsertConversationEventParams, T>
 ): Promise<FilterByType<TConversationEvent, T>> {
   const events = await insertEvents(db, [event]);
 
