@@ -1,68 +1,41 @@
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 
-import {
-  Database,
-  ConversationRow,
-  InsertableConversationRow,
-} from "../database";
-import { Nullable } from "../types";
-import {
-  TConversation,
-  TConversationWithRecipientsAndLatestMessage,
-} from "../schema";
+import { Database } from "../database";
+import { TConversationWithoutRecipients } from "../schema";
 
-interface ConversationRowWithCreatedBy extends ConversationRow {
+interface ConversationRow {
+  conversation_id: string;
+  created_at: string;
+  created_by: string;
   created_by_username: string;
+  title: string | null;
+  latest_message_id: number | null;
+  latest_message_created_at: string | null;
+  latest_message_created_by: string | null;
+  latest_message_created_by_username: string | null;
+  latest_message_content: string | null;
 }
 
 function toConversationSchema(
-  row: ConversationRowWithCreatedBy
-): TConversation {
+  row: ConversationRow
+): TConversationWithoutRecipients {
   return {
-    id: row.conversation_id,
+    conversationId: row.conversation_id,
     createdAt: row.created_at,
     createdBy: {
       id: row.created_by,
       username: row.created_by_username,
     },
     title: row.title,
-  };
-}
-
-interface LatestMessageRow {
-  latest_message_id: string;
-  latest_message_created_at: string;
-  latest_message_created_by: string;
-  latest_message_created_by_username: string;
-  latest_message_content: string;
-}
-
-function hasLatestMessage(
-  row: ConversationRowWithCreatedBy & Partial<Nullable<LatestMessageRow>>
-): row is ConversationRowWithCreatedBy & LatestMessageRow {
-  return !!row.latest_message_id;
-}
-
-type TConversationWithLatestMessage = Omit<
-  TConversationWithRecipientsAndLatestMessage,
-  "recipients"
->;
-
-function toConversationWithLatestMessageSchema(
-  row: ConversationRowWithCreatedBy & Partial<Nullable<LatestMessageRow>>
-): TConversationWithLatestMessage {
-  return {
-    ...toConversationSchema(row),
-    latestMessage: hasLatestMessage(row)
+    latestMessage: row.latest_message_id
       ? {
-          id: row.latest_message_id,
-          conversationId: row.conversation_id,
-          createdAt: row.latest_message_created_at,
+          id: row.latest_message_id!,
+          content: row.latest_message_content!,
+          createdAt: row.latest_message_created_at!,
           createdBy: {
-            id: row.latest_message_created_by,
-            username: row.latest_message_created_by_username,
+            id: row.latest_message_created_by!,
+            username: row.latest_message_created_by_username!,
           },
-          content: row.latest_message_content,
         }
       : null,
   };
@@ -73,127 +46,100 @@ export async function isExistingConversation(
   conversationId: string
 ): Promise<boolean> {
   return !!(await db
-    .selectFrom("conversation")
+    .selectFrom("conversation_creation_es")
     .where("conversation_id", "=", conversationId)
     .selectAll()
     .executeTakeFirst());
 }
 
-export async function findConversationById(
+export async function findConversationByConversationId(
   db: Kysely<Database>,
   conversationId: string
-): Promise<TConversationWithLatestMessage> {
-  const conversation = await db
-    .selectFrom("conversation as c")
-    .innerJoin("user_account as cu", "cu.user_id", "c.created_by")
+): Promise<TConversationWithoutRecipients | null> {
+  const row = await db
+    .selectFrom("conversation_creation_es as c")
     .leftJoin(
-      "conversation_latest_message as lm",
-      "lm.conversation_id",
+      "conversation_title_es as t",
+      "t.conversation_id",
       "c.conversation_id"
     )
-    .leftJoin("user_account as lmu", "lmu.user_id", "lm.created_by")
+    .leftJoin(
+      "conversation_latest_message_es as m",
+      "m.conversation_id",
+      "c.conversation_id"
+    )
     .select([
       "c.conversation_id",
       "c.created_at",
       "c.created_by",
-      "cu.username as created_by_username",
-      "c.title",
-      "lm.id as latest_message_id",
-      "lm.created_at as latest_message_created_at",
-      "lm.created_by as latest_message_created_by",
-      "lmu.username as latest_message_created_by_username",
-      "lm.content as latest_message_content",
+      "c.created_by_username",
+      "t.title",
+      "m.id as latest_message_id",
+      "m.created_at as latest_message_created_at",
+      "m.created_by as latest_message_created_by",
+      "m.created_by_username as latest_message_created_by_username",
+      "m.message as latest_message_content",
     ])
     .where("c.conversation_id", "=", conversationId)
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
 
-  return toConversationWithLatestMessageSchema(conversation);
+  if (!row) {
+    return null;
+  }
+
+  return toConversationSchema(row);
 }
 
 export async function findConversationsByUserId(
   db: Kysely<Database>,
   userId: string
-): Promise<TConversationWithLatestMessage[]> {
+): Promise<TConversationWithoutRecipients[]> {
+  const { max } = db.fn;
+
   const rows = await db
-    .selectFrom("conversation_recipient as r")
-    .innerJoin("conversation as c", "c.conversation_id", "r.conversation_id")
-    .innerJoin("user_account as cu", "cu.user_id", "c.created_by")
-    .leftJoin(
-      "conversation_latest_message as lm",
-      "lm.conversation_id",
+    .selectFrom("conversation_recipient_es as ur")
+    .innerJoin(
+      "conversation_creation_es as c",
+      "c.conversation_id",
+      "ur.conversation_id"
+    )
+    .innerJoin(
+      db
+        .selectFrom("conversation_recipient_es")
+        .select([max("created_at").as("max_created_at"), "conversation_id"])
+        .groupBy("conversation_id")
+        .as("r"),
+      "r.conversation_id",
       "c.conversation_id"
     )
-    .leftJoin("user_account as lmu", "lmu.user_id", "lm.created_by")
+    .leftJoin(
+      "conversation_title_es as t",
+      "t.conversation_id",
+      "c.conversation_id"
+    )
+    .leftJoin(
+      "conversation_latest_message_es as m",
+      "m.conversation_id",
+      "c.conversation_id"
+    )
     .select([
       "c.conversation_id",
       "c.created_at",
       "c.created_by",
-      "cu.username as created_by_username",
-      "c.title",
-      "lm.id as latest_message_id",
-      "lm.created_at as latest_message_created_at",
-      "lm.created_by as latest_message_created_by",
-      "lmu.username as latest_message_created_by_username",
-      "lm.content as latest_message_content",
+      "c.created_by_username",
+      "t.title",
+      "m.id as latest_message_id",
+      "m.created_at as latest_message_created_at",
+      "m.created_by as latest_message_created_by",
+      "m.created_by_username as latest_message_created_by_username",
+      "m.message as latest_message_content",
     ])
-    .where("r.user_id", "=", userId)
-    .orderBy((qb) => qb.fn.coalesce("lm.created_at", "c.created_at"), "desc")
+    .where("ur.recipient_id", "=", userId)
+    .orderBy(
+      sql`greatest(c.created_at, t.created_at, r.max_created_at, m.created_at)`,
+      "desc"
+    )
     .execute();
 
-  return rows.map(toConversationWithLatestMessageSchema);
-}
-
-export interface InsertConversationParams {
-  createdBy: string;
-  title: string | undefined;
-}
-
-export async function insertConversation(
-  db: Kysely<Database>,
-  params: InsertConversationParams
-): Promise<TConversation> {
-  const values: InsertableConversationRow = {
-    created_by: params.createdBy,
-    title: params.title,
-  };
-
-  const row = await db
-    .with("c", (db) =>
-      db.insertInto("conversation").values(values).returningAll()
-    )
-    .selectFrom("c")
-    .innerJoin("user_account as u", "u.user_id", "c.created_by")
-    .selectAll("c")
-    .select("u.username as created_by_username")
-    .executeTakeFirstOrThrow();
-
-  return toConversationSchema(row);
-}
-
-export interface UpdateConversationParams {
-  conversationId: string;
-  title: string | null;
-}
-
-export async function updateConversation(
-  db: Kysely<Database>,
-  params: UpdateConversationParams
-): Promise<TConversation> {
-  const { conversationId, title } = params;
-
-  const row = await db
-    .with("c", (db) =>
-      db
-        .updateTable("conversation")
-        .set({ title })
-        .where("conversation_id", "=", conversationId)
-        .returningAll()
-    )
-    .selectFrom("c")
-    .innerJoin("user_account as u", "u.user_id", "c.created_by")
-    .selectAll("c")
-    .select("u.username as created_by_username")
-    .executeTakeFirstOrThrow();
-
-  return toConversationSchema(row);
+  return rows.map(toConversationSchema);
 }

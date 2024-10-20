@@ -10,16 +10,10 @@ import {
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 import { Database } from "./database";
-import {
-  TConversation,
-  TConversationWithRecipientsAndLatestMessage,
-  TMessage,
-  TUserWithCreatedAt,
-} from "./schema";
 
-export type Nullable<T> = {
-  [K in keyof T]: T[K] | null;
-};
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
 
 export type FastifyTypebox = FastifyInstance<
   RawServerDefault,
@@ -28,47 +22,6 @@ export type FastifyTypebox = FastifyInstance<
   FastifyBaseLogger,
   TypeBoxTypeProvider
 >;
-
-export interface ConversationCreatedEvent {
-  type: "conversation/created";
-  payload: TConversationWithRecipientsAndLatestMessage;
-}
-
-export interface ConversationUpdatedEvent {
-  type: "conversation/updated";
-  payload: TConversation;
-}
-
-export interface MessageCreatedEvent {
-  type: "message/created";
-  payload: TMessage;
-}
-
-export interface RecipientAddedEvent {
-  type: "recipient/added";
-  payload: TUserWithCreatedAt;
-}
-
-export interface RecipientRemovedEvent {
-  type: "recipient/removed";
-  payload: TUserWithCreatedAt;
-}
-
-export interface ErrorEvent {
-  type: "error";
-  payload: {
-    code: string;
-    message: string;
-  };
-}
-
-export type ServerEvent =
-  | ConversationCreatedEvent
-  | ConversationUpdatedEvent
-  | MessageCreatedEvent
-  | RecipientAddedEvent
-  | RecipientRemovedEvent
-  | ErrorEvent;
 
 export interface ClientConnection {
   userId: string;

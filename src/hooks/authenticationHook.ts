@@ -6,7 +6,7 @@ import {
   ExpiredAuthTokenError,
   InvalidAuthTokenError,
   validateToken,
-  parseTokenScheme,
+  removeTokenScheme,
 } from "../services";
 import { UnauthorisedError } from "../errors";
 import "./authenticationTypes";
@@ -21,7 +21,7 @@ export default function authentication(
       throw new UnauthorisedError();
     }
 
-    const token = parseTokenScheme(authorization);
+    const token = removeTokenScheme(authorization);
 
     try {
       request.token = await validateToken(db, token);

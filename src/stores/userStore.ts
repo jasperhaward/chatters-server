@@ -71,8 +71,6 @@ export async function findUserByUsername(
     return null;
   }
 
-  // this function is only used in the /login and /register endpoints,
-  // where it is useful to have the createdAt field
   return toUserWithCreatedAtSchema(row);
 }
 
