@@ -124,16 +124,16 @@ export default async function conversationsController(
       const events = await db.transaction().execute(async (trx) => {
         const conversationId = randomUUID();
 
-        const conversationEvent = await insertEvent(trx, {
+        const conversationCreated = await insertEvent(trx, {
           conversationId,
           type: ConversationEventType.ConversationCreated,
           createdBy: userId,
         });
 
-        let titleEvent;
+        let titleUpdated;
 
         if (title) {
-          titleEvent = await insertEvent(trx, {
+          titleUpdated = await insertEvent(trx, {
             conversationId,
             type: ConversationEventType.ConversationTitleUpdated,
             createdBy: userId,
@@ -141,7 +141,7 @@ export default async function conversationsController(
           });
         }
 
-        const recipientEvents = await insertEvents(
+        const recipientsCreated = await insertEvents(
           trx,
           sanitisedRecipientIds.map((recipientId) => ({
             conversationId,
@@ -151,12 +151,26 @@ export default async function conversationsController(
           }))
         );
 
-        return titleEvent
-          ? [conversationEvent, titleEvent, ...recipientEvents]
-          : [conversationEvent, ...recipientEvents];
+        return { conversationCreated, titleUpdated, recipientsCreated };
       });
 
-      dispatchEvent(sanitisedRecipientIds, events);
+      const recipients = events.recipientsCreated.map<TRecipient>((event) => ({
+        ...event.recipient,
+        createdAt: event.createdAt,
+        createdBy: event.createdBy,
+      }));
+
+      const addedToConversationEvent: TAddedToConversationEvent = {
+        type: ConversationEventType.AddedToConversation,
+        conversationId: events.conversationCreated.conversationId,
+        createdAt: events.conversationCreated.createdAt,
+        createdBy: events.conversationCreated.createdBy,
+        title: events.titleUpdated?.title || null,
+        recipients,
+        latestEvent: events.recipientsCreated.at(-1)!,
+      };
+
+      dispatchEvent(sanitisedRecipientIds, addedToConversationEvent);
 
       return events;
     }
@@ -219,16 +233,16 @@ export default async function conversationsController(
         );
       }
 
-      const titleEvent = await insertEvent(db, {
+      const titleUpdatedEvent = await insertEvent(db, {
         conversationId,
         type: ConversationEventType.ConversationTitleUpdated,
         createdBy: userId,
         title,
       });
 
-      dispatchEvent(recipients, titleEvent);
+      dispatchEvent(recipients, titleUpdatedEvent);
 
-      return titleEvent;
+      return titleUpdatedEvent;
     }
   );
 
@@ -259,16 +273,16 @@ export default async function conversationsController(
         );
       }
 
-      const messageEvent = await insertEvent(db, {
+      const messageCreatedEvent = await insertEvent(db, {
         conversationId,
         type: ConversationEventType.MessageCreated,
         createdBy: userId,
         message: content.trim(),
       });
 
-      dispatchEvent(recipients, messageEvent);
+      dispatchEvent(recipients, messageCreatedEvent);
 
-      return messageEvent;
+      return messageCreatedEvent;
     }
   );
 
@@ -318,19 +332,19 @@ export default async function conversationsController(
         );
       }
 
-      const recipientEvent = await insertEvent(db, {
+      const recipientCreatedEvent = await insertEvent(db, {
         conversationId,
         type: ConversationEventType.RecipientCreated,
         createdBy: userId,
         recipientId,
       });
 
-      dispatchEvent(recipients, recipientEvent);
+      dispatchEvent(recipients, recipientCreatedEvent);
 
       const addedRecipient: TRecipient = {
-        ...recipientEvent.recipient,
-        createdAt: recipientEvent.createdAt,
-        createdBy: recipientEvent.createdBy,
+        ...recipientCreatedEvent.recipient,
+        createdAt: recipientCreatedEvent.createdAt,
+        createdBy: recipientCreatedEvent.createdBy,
       };
 
       const updatedRecipients = [...recipients, addedRecipient].sort(
@@ -338,15 +352,16 @@ export default async function conversationsController(
       );
 
       // when a recipient is added to a conversation, send the new recipient full conversation details
-      const addedEvent: TAddedToConversationEvent = {
+      const addedToConversationEvent: TAddedToConversationEvent = {
         type: ConversationEventType.AddedToConversation,
         ...conversation,
         recipients: updatedRecipients,
+        latestEvent: recipientCreatedEvent,
       };
 
-      dispatchEvent([recipientId], addedEvent);
+      dispatchEvent([recipientId], addedToConversationEvent);
 
-      return recipientEvent;
+      return recipientCreatedEvent;
     }
   );
 
@@ -390,16 +405,16 @@ export default async function conversationsController(
         );
       }
 
-      const recipientEvent = await insertEvent(db, {
+      const recipientRemovedEvent = await insertEvent(db, {
         conversationId,
         type: ConversationEventType.RecipientRemoved,
         createdBy: userId,
         recipientId,
       });
 
-      dispatchEvent(recipients, recipientEvent);
+      dispatchEvent(recipients, recipientRemovedEvent);
 
-      return recipientEvent;
+      return recipientRemovedEvent;
     }
   );
 }
