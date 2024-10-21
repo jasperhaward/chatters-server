@@ -1,7 +1,19 @@
 import { Kysely, sql } from "kysely";
 
-import { Database } from "../database";
+import { Database, RecipientRow } from "../database";
 import { TRecipient } from "../schema";
+
+function toRecipientSchema(row: RecipientRow): TRecipient {
+  return {
+    id: row.recipient_id,
+    username: row.recipient_username,
+    createdAt: row.created_at,
+    createdBy: {
+      id: row.created_by,
+      username: row.created_by_username,
+    },
+  };
+}
 
 export async function isExistingConversationWithRecipientIds(
   db: Kysely<Database>,
@@ -35,15 +47,7 @@ export async function findRecipientsByConversationId(
     .orderBy("recipient_username")
     .execute();
 
-  return rows.map((row) => ({
-    id: row.recipient_id,
-    username: row.recipient_username,
-    createdAt: row.created_at,
-    createdBy: {
-      id: row.created_by,
-      username: row.created_by_username,
-    },
-  }));
+  return rows.map(toRecipientSchema);
 }
 
 export function isUserInRecipients(recipients: TRecipient[], userId: string) {

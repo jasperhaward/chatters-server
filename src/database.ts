@@ -74,6 +74,8 @@ interface RecipientEsView extends ConversationEventCommon {
   recipient_username: string;
 }
 
+export type RecipientRow = Selectable<RecipientEsView>;
+
 interface LatestEventEsView extends ConversationEventCommon {
   event_type: ConversationEventType;
   message: string | null;
