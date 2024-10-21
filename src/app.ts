@@ -8,7 +8,7 @@ import swaggerUi from "@fastify/swagger-ui";
 
 import { Config } from "./config";
 import { Database } from "./database";
-import { TUiConversationEvent } from "./schema";
+import { TRecipient, TUiConversationEvent } from "./schema";
 import { FastifyTypebox, ClientConnection } from "./types";
 
 import authController from "./controllers/authController";
@@ -42,9 +42,13 @@ export default class App {
     });
     this.fastify.register(websocket);
     this.fastify.register(swagger, this.config.swagger);
-    this.fastify.register(swaggerUi, { prefix: "/" });
 
-    this.fastify.register(versionController, { prefix: "/version" });
+    this.fastify.register(swaggerUi, {
+      prefix: "/",
+    });
+    this.fastify.register(versionController, {
+      prefix: "/version",
+    });
     this.fastify.register(authController, {
       prefix: "/api/v1/auth",
       db: this.db,
@@ -94,18 +98,19 @@ export default class App {
   };
 
   dispatchEvent = (
-    recipientIds: string[],
-    events: TUiConversationEvent | TUiConversationEvent[]
+    recipients: string[] | TRecipient[],
+    event: TUiConversationEvent
   ) => {
+    // prettier-ignore
+    const recipientIds = recipients.map((recipient) =>
+      typeof recipient === "object" 
+        ? recipient.id
+        : recipient
+    );
+
     for (const connection of this.clientConnections) {
       if (recipientIds.includes(connection.userId)) {
-        if (Array.isArray(events)) {
-          for (const event of events) {
-            connection.socket.send(JSON.stringify(event));
-          }
-        } else {
-          connection.socket.send(JSON.stringify(events));
-        }
+        connection.socket.send(JSON.stringify(event));
       }
     }
   };

@@ -37,8 +37,8 @@ import {
 
 export interface ConversationsControllerOptions extends ControllerOptions {
   dispatchEvent: (
-    recipientIds: string[],
-    events: TUiConversationEvent | TUiConversationEvent[]
+    recipients: string[] | TRecipient[],
+    event: TUiConversationEvent
   ) => void;
 }
 
@@ -46,18 +46,7 @@ export default async function conversationsController(
   fastify: FastifyTypebox,
   options: ConversationsControllerOptions
 ) {
-  const { db } = options;
-
-  function dispatchEvent(
-    recipients: TRecipient[] | string[],
-    events: TUiConversationEvent | TUiConversationEvent[]
-  ) {
-    const recipientIds = recipients.map((recipient) =>
-      typeof recipient === "string" ? recipient : recipient.id
-    );
-
-    options.dispatchEvent(recipientIds, events);
-  }
+  const { db, dispatchEvent } = options;
 
   fastify.get(
     "/",
@@ -359,7 +348,7 @@ export default async function conversationsController(
         latestEvent: recipientCreatedEvent,
       };
 
-      dispatchEvent([recipientId], addedToConversationEvent);
+      dispatchEvent([addedRecipient.id], addedToConversationEvent);
 
       return recipientCreatedEvent;
     }

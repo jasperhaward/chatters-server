@@ -3,7 +3,7 @@ import { PoolConfig } from "pg";
 import packageJson from "../package.json";
 import { parseEnv } from "./utils";
 
-const environment = parseEnv("ENVIRONMENT", "string");
+const environment = parseEnv("ENVIRONMENT");
 
 const swaggerConfig: SwaggerOptions = {
   openapi: {
@@ -50,8 +50,8 @@ const config: Readonly<Config> = {
   name: packageJson.name,
   version: packageJson.version,
   environment,
-  host: parseEnv("HOST", "string"),
-  port: parseEnv("PORT", "number"),
+  host: parseEnv("HOST"),
+  port: parseInt(parseEnv("PORT")),
   origins: [
     /^http:\/\/localhost:[0-9]{4}$/,
     /^http:\/\/server(.local)?:[0-9]{4}$/,
@@ -59,13 +59,13 @@ const config: Readonly<Config> = {
   ],
   swagger: swaggerConfig,
   database: {
-    host: parseEnv("POSTGRES_HOST", "string"),
-    port: parseEnv("POSTGRES_PORT", "number"),
-    user: parseEnv("POSTGRES_USER", "string"),
-    password: parseEnv("POSTGRES_PASSWORD", "string"),
-    database: parseEnv("POSTGRES_DATABASE", "string"),
+    host: parseEnv("POSTGRES_HOST"),
+    port: parseInt(parseEnv("POSTGRES_PORT")),
+    user: parseEnv("POSTGRES_USER"),
+    password: parseEnv("POSTGRES_PASSWORD"),
+    database: parseEnv("POSTGRES_DATABASE"),
   },
-  authTokenSecret: parseEnv("AUTH_TOKEN_SECRET", "string"),
+  authTokenSecret: parseEnv("AUTH_TOKEN_SECRET"),
   authTokenExpiryDuration: 3000,
   minUsernameLength: 5, // *
   maxUsernameLength: 25, // *
