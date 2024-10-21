@@ -1,7 +1,7 @@
 import { GeneratedAlways, Insertable, Selectable } from "kysely";
 import { ConversationEventType } from "./schema";
 
-// Shared tables
+// User & auth tables
 
 interface UserAccountTable {
   user_id: GeneratedAlways<string>;
@@ -28,7 +28,7 @@ interface UserTokenTable {
 export type UserTokenRow = Selectable<UserTokenTable>;
 export type InsertableUserTokenRow = Insertable<UserTokenTable>;
 
-// Event sourcing tables
+// Conversation event table & views
 
 interface ConversationEventTable {
   id: GeneratedAlways<number>;
@@ -44,51 +44,51 @@ interface ConversationEventTable {
 export type ConversationEventRow = Selectable<ConversationEventTable>;
 export type InsertableConversationEventRow = Insertable<ConversationEventTable>;
 
-interface EsViewShared {
-  id: GeneratedAlways<number>;
-  conversation_id: GeneratedAlways<string>;
-  created_at: GeneratedAlways<string>;
-  created_by: GeneratedAlways<string>;
-  created_by_username: GeneratedAlways<string>;
+/**
+ * As our views are readonly we can make all fields in the interface `GeneratedAlways`.
+ */
+type View<T> = {
+  [K in keyof T]: GeneratedAlways<T[K]>;
+};
+
+interface ConversationEventShared {
+  id: number;
+  conversation_id: string;
+  created_at: string;
+  created_by: string;
+  created_by_username: string;
 }
 
-interface CreationEsView extends EsViewShared {
+interface CreationEsView extends ConversationEventShared {
   event_type: ConversationEventType.ConversationCreated;
 }
 
-export type CreationEsRow = Selectable<CreationEsView>;
-
-interface TitleEsView extends EsViewShared {
+interface TitleEsView extends ConversationEventShared {
   event_type: ConversationEventType.ConversationTitleUpdated;
-  title: GeneratedAlways<string>;
+  title: string;
 }
 
-export type TitleEsRow = Selectable<TitleEsView>;
-
-interface RecipientEsView extends EsViewShared {
+interface RecipientEsView extends ConversationEventShared {
   event_type: ConversationEventType.RecipientCreated;
-  recipient_id: GeneratedAlways<string>;
-  recipient_username: GeneratedAlways<string>;
+  recipient_id: string;
+  recipient_username: string;
 }
 
-export type RecipientEsRow = Selectable<RecipientEsView>;
-
-interface LatestMessageEsView extends EsViewShared {
-  event_type: ConversationEventType.MessageCreated;
-  message: GeneratedAlways<string>;
+interface LatestEventEsView extends ConversationEventShared {
+  event_type: ConversationEventType;
+  message: string | null;
+  title: string | null;
+  recipient_id: string | null;
+  recipient_username: string | null;
 }
-
-export type LatestMessageEsRow = Selectable<LatestMessageEsView>;
 
 export interface Database {
-  // Shared tables
   user_account: UserAccountTable;
   user_password: UserPasswordTable;
   user_token: UserTokenTable;
-  // Event sourcing tables
   conversation_event: ConversationEventTable;
-  conversation_creation_es: CreationEsView;
-  conversation_title_es: TitleEsView;
-  conversation_recipient_es: RecipientEsView;
-  conversation_latest_message_es: LatestMessageEsView;
+  conversation_creation_es: View<CreationEsView>;
+  conversation_title_es: View<TitleEsView>;
+  conversation_recipient_es: View<RecipientEsView>;
+  conversation_latest_event_es: View<LatestEventEsView>;
 }

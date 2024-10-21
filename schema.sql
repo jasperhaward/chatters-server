@@ -70,16 +70,19 @@ CREATE VIEW conversation_recipient_es AS
     WHERE event_type = 'RecipientCreated'
     ORDER BY e.conversation_id, e.recipient_id, created_at DESC 
 
-CREATE VIEW conversation_latest_message_es AS
-    SELECT DISTINCT ON (conversation_id) 
+CREATE VIEW conversation_latest_event_es AS
+    SELECT DISTINCT ON (e.conversation_id)
         e.id, 
         e.conversation_id,
         e.event_type, 
         e.created_at, 
         e.created_by, 
-        u.username AS created_by_username,
-        e.message
+        cu.username AS created_by_username,
+        e.message,
+        e.title,
+        e.recipient_id,
+        ru.username AS recipient_username 
     FROM conversation_event AS e
-    INNER JOIN user_account AS u ON u.user_id = e.created_by
-    WHERE event_type = 'MessageCreated'
+    INNER JOIN user_account AS cu ON cu.user_id = e.created_by
+    LEFT JOIN user_account AS ru ON ru.user_id = e.recipient_id
     ORDER BY conversation_id, e.created_at DESC 

@@ -11,13 +11,13 @@ import {
   TConversationEventShared,
 } from "../schema";
 
-interface PopulatedConversationEventRow extends ConversationEventRow {
+export interface ConversationEventRowWithJoins extends ConversationEventRow {
   created_by_username: string;
   recipient_username: string | null;
 }
 
-function toConversationEventSchema(
-  row: PopulatedConversationEventRow
+export function toConversationEventSchema(
+  row: ConversationEventRowWithJoins
 ): TConversationEvent {
   const shared: TConversationEventShared = {
     id: row.id,
