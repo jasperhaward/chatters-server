@@ -11,7 +11,7 @@ export enum ConversationEventType {
   AddedToConversation = "AddedToConversation",
 }
 
-export const ConversationEventShared = Type.Object({
+export const ConversationEventCommon = Type.Object({
   id: Type.Number(),
   conversationId: Type.String({ format: "uuid" }),
   type: Type.Enum(ConversationEventType),
@@ -19,10 +19,10 @@ export const ConversationEventShared = Type.Object({
   createdBy: User,
 });
 
-export type TConversationEventShared = Static<typeof ConversationEventShared>;
+export type TConversationEventCommon = Static<typeof ConversationEventCommon>;
 
 export const ConversationCreatedEvent = Type.Intersect([
-  ConversationEventShared,
+  ConversationEventCommon,
   Type.Object({
     type: Type.Literal(ConversationEventType.ConversationCreated),
   }),
@@ -31,7 +31,7 @@ export const ConversationCreatedEvent = Type.Intersect([
 export type TConversationCreatedEvent = Static<typeof ConversationCreatedEvent>;
 
 export const TitleUpdatedEvent = Type.Intersect([
-  ConversationEventShared,
+  ConversationEventCommon,
   Type.Object({
     type: Type.Literal(ConversationEventType.ConversationTitleUpdated),
     title: Type.String(),
@@ -41,7 +41,7 @@ export const TitleUpdatedEvent = Type.Intersect([
 export type TTitleUpdatedEvent = Static<typeof TitleUpdatedEvent>;
 
 export const MessageCreatedEvent = Type.Intersect([
-  ConversationEventShared,
+  ConversationEventCommon,
   Type.Object({
     type: Type.Literal(ConversationEventType.MessageCreated),
     message: Type.String(),
@@ -51,7 +51,7 @@ export const MessageCreatedEvent = Type.Intersect([
 export type TMessageCreatedEvent = Static<typeof MessageCreatedEvent>;
 
 export const RecipientCreatedEvent = Type.Intersect([
-  ConversationEventShared,
+  ConversationEventCommon,
   Type.Object({
     type: Type.Literal(ConversationEventType.RecipientCreated),
     recipient: User,
@@ -61,7 +61,7 @@ export const RecipientCreatedEvent = Type.Intersect([
 export type TRecipientCreatedEvent = Static<typeof RecipientCreatedEvent>;
 
 export const RecipientRemovedEvent = Type.Intersect([
-  ConversationEventShared,
+  ConversationEventCommon,
   Type.Object({
     type: Type.Literal(ConversationEventType.RecipientRemoved),
     recipient: User,

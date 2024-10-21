@@ -8,7 +8,7 @@ import {
 import {
   ConversationEventType,
   TConversationEvent,
-  TConversationEventShared,
+  TConversationEventCommon,
 } from "../schema";
 
 export interface ConversationEventRowWithJoins extends ConversationEventRow {
@@ -19,7 +19,7 @@ export interface ConversationEventRowWithJoins extends ConversationEventRow {
 export function toConversationEventSchema(
   row: ConversationEventRowWithJoins
 ): TConversationEvent {
-  const shared: TConversationEventShared = {
+  const common: TConversationEventCommon = {
     id: row.id,
     type: row.event_type,
     conversationId: row.conversation_id,
@@ -33,24 +33,24 @@ export function toConversationEventSchema(
   switch (row.event_type) {
     case ConversationEventType.ConversationCreated:
       return {
-        ...shared,
+        ...common,
         type: ConversationEventType.ConversationCreated,
       };
     case ConversationEventType.ConversationTitleUpdated:
       return {
-        ...shared,
+        ...common,
         type: ConversationEventType.ConversationTitleUpdated,
         title: row.title!,
       };
     case ConversationEventType.MessageCreated:
       return {
-        ...shared,
+        ...common,
         type: ConversationEventType.MessageCreated,
         message: row.message!,
       };
     case ConversationEventType.RecipientCreated:
       return {
-        ...shared,
+        ...common,
         type: ConversationEventType.RecipientCreated,
         recipient: {
           id: row.recipient_id!,
@@ -59,7 +59,7 @@ export function toConversationEventSchema(
       };
     case ConversationEventType.RecipientRemoved:
       return {
-        ...shared,
+        ...common,
         type: ConversationEventType.RecipientRemoved,
         recipient: {
           id: row.recipient_id!,

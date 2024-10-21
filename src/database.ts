@@ -51,7 +51,7 @@ type View<T> = {
   [K in keyof T]: GeneratedAlways<T[K]>;
 };
 
-interface ConversationEventShared {
+interface ConversationEventCommon {
   id: number;
   conversation_id: string;
   created_at: string;
@@ -59,22 +59,22 @@ interface ConversationEventShared {
   created_by_username: string;
 }
 
-interface CreationEsView extends ConversationEventShared {
+interface CreationEsView extends ConversationEventCommon {
   event_type: ConversationEventType.ConversationCreated;
 }
 
-interface TitleEsView extends ConversationEventShared {
+interface TitleEsView extends ConversationEventCommon {
   event_type: ConversationEventType.ConversationTitleUpdated;
   title: string;
 }
 
-interface RecipientEsView extends ConversationEventShared {
+interface RecipientEsView extends ConversationEventCommon {
   event_type: ConversationEventType.RecipientCreated;
   recipient_id: string;
   recipient_username: string;
 }
 
-interface LatestEventEsView extends ConversationEventShared {
+interface LatestEventEsView extends ConversationEventCommon {
   event_type: ConversationEventType;
   message: string | null;
   title: string | null;
