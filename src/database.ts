@@ -1,15 +1,25 @@
 import { GeneratedAlways, Insertable, Selectable } from "kysely";
+import { ConversationEventType } from "./schema";
 
-export interface UserAccountTable {
+// User & auth tables
+
+interface UserAccountTable {
   user_id: GeneratedAlways<string>;
   username: string;
   created_at: GeneratedAlways<string>;
 }
 
 export type UserAccountRow = Selectable<UserAccountTable>;
-export type InsertableUserAccountRow = Insertable<UserAccountTable>;
 
-export interface UserTokenTable {
+interface UserPasswordTable {
+  user_id: string;
+  password_hash: string;
+}
+
+export type UserPasswordRow = Selectable<UserPasswordTable>;
+export type InsertableUserPasswordRow = Insertable<UserPasswordTable>;
+
+interface UserTokenTable {
   token_id: GeneratedAlways<string>;
   user_id: string;
   created_at: GeneratedAlways<string>;
@@ -18,61 +28,69 @@ export interface UserTokenTable {
 export type UserTokenRow = Selectable<UserTokenTable>;
 export type InsertableUserTokenRow = Insertable<UserTokenTable>;
 
-export interface UserPasswordTable {
-  user_id: string;
-  password_hash: string;
-}
+// Conversation event table & views
 
-export type UserPasswordRow = Selectable<UserPasswordTable>;
-export type InsertableUserPasswordRow = Insertable<UserPasswordTable>;
-
-export interface ConversationTable {
-  conversation_id: GeneratedAlways<string>;
+interface ConversationEventTable {
+  id: GeneratedAlways<number>;
+  conversation_id: string;
+  event_type: ConversationEventType;
   created_at: GeneratedAlways<string>;
   created_by: string;
   title: string | null;
+  recipient_id: string | null;
+  message: string | null;
 }
 
-export type ConversationRow = Selectable<ConversationTable>;
-export type InsertableConversationRow = Insertable<ConversationTable>;
+export type ConversationEventRow = Selectable<ConversationEventTable>;
+export type InsertableConversationEventRow = Insertable<ConversationEventTable>;
 
-export interface MessageTable {
-  id: GeneratedAlways<string>;
-  created_at: GeneratedAlways<string>;
+/**
+ * As our views are readonly we can make all fields in the interface `GeneratedAlways`.
+ */
+type View<T> = {
+  [K in keyof T]: GeneratedAlways<T[K]>;
+};
+
+interface ConversationEventCommon {
+  id: number;
+  conversation_id: string;
+  created_at: string;
   created_by: string;
-  conversation_id: string;
-  content: string;
+  created_by_username: string;
 }
 
-export type MessageRow = Selectable<MessageTable>;
-export type InsertableMessageRow = Insertable<MessageTable>;
-
-export interface LatestMessageView {
-  id: GeneratedAlways<string>;
-  created_at: GeneratedAlways<string>;
-  created_by: GeneratedAlways<string>;
-  conversation_id: GeneratedAlways<string>;
-  content: GeneratedAlways<string>;
+interface CreationEsView extends ConversationEventCommon {
+  event_type: ConversationEventType.ConversationCreated;
 }
 
-export type LatestMessageRow = Selectable<MessageTable>;
-
-export interface RecipientTable {
-  id: GeneratedAlways<string>;
-  created_at: GeneratedAlways<string>;
-  conversation_id: string;
-  user_id: string;
+interface TitleEsView extends ConversationEventCommon {
+  event_type: ConversationEventType.ConversationTitleUpdated;
+  title: string;
 }
 
-export type RecipientRow = Selectable<RecipientTable>;
-export type InsertableRecipientRow = Insertable<RecipientTable>;
+interface RecipientEsView extends ConversationEventCommon {
+  event_type: ConversationEventType.RecipientCreated;
+  recipient_id: string;
+  recipient_username: string;
+}
+
+export type RecipientRow = Selectable<RecipientEsView>;
+
+interface LatestEventEsView extends ConversationEventCommon {
+  event_type: ConversationEventType;
+  message: string | null;
+  title: string | null;
+  recipient_id: string | null;
+  recipient_username: string | null;
+}
 
 export interface Database {
   user_account: UserAccountTable;
   user_password: UserPasswordTable;
   user_token: UserTokenTable;
-  conversation: ConversationTable;
-  conversation_recipient: RecipientTable;
-  conversation_message: MessageTable;
-  conversation_latest_message: LatestMessageView;
+  conversation_event: ConversationEventTable;
+  conversation_creation_es: View<CreationEsView>;
+  conversation_title_es: View<TitleEsView>;
+  conversation_recipient_es: View<RecipientEsView>;
+  conversation_latest_event_es: View<LatestEventEsView>;
 }

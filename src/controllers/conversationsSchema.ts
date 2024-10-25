@@ -4,14 +4,16 @@ import { Type } from "@sinclair/typebox";
 import config from "../config";
 import {
   Conversation,
-  ConversationWithRecipientsAndLatestMessage,
-  Message,
-  Recipient,
+  ConversationEvent,
+  TitleUpdatedEvent,
+  MessageCreatedEvent,
+  RecipientCreatedEvent,
+  RecipientRemovedEvent,
 } from "../schema";
 
 export const GetConversationsSchema = {
   response: {
-    "2xx": Type.Array(ConversationWithRecipientsAndLatestMessage),
+    "2xx": Type.Array(Conversation),
   },
 } satisfies FastifySchema;
 
@@ -26,7 +28,7 @@ export const CreateConversationSchema = {
     ),
   }),
   response: {
-    "2xx": ConversationWithRecipientsAndLatestMessage,
+    "2xx": Type.Array(ConversationEvent),
   },
 } satisfies FastifySchema;
 
@@ -45,20 +47,20 @@ export const UpdateConversationSchema = {
     ]),
   }),
   response: {
-    "2xx": Conversation,
+    "2xx": TitleUpdatedEvent,
   },
 } satisfies FastifySchema;
 
-export const GetConversationMessagesSchema = {
+export const GetEventsSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
   }),
   response: {
-    "2xx": Type.Array(Message),
+    "2xx": Type.Array(ConversationEvent),
   },
 } satisfies FastifySchema;
 
-export const CreateConversationMessageSchema = {
+export const CreateMessageSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
   }),
@@ -69,11 +71,11 @@ export const CreateConversationMessageSchema = {
     }),
   }),
   response: {
-    "2xx": Message,
+    "2xx": MessageCreatedEvent,
   },
 } satisfies FastifySchema;
 
-export const CreateConversationRecipientSchema = {
+export const CreateRecipientSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
   }),
@@ -81,13 +83,16 @@ export const CreateConversationRecipientSchema = {
     recipientId: Type.String({ format: "uuid" }),
   }),
   response: {
-    "2xx": Recipient,
+    "2xx": RecipientCreatedEvent,
   },
 } satisfies FastifySchema;
 
-export const DeleteConversationRecipientSchema = {
+export const DeleteRecipientSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
     recipientId: Type.String({ format: "uuid" }),
   }),
+  response: {
+    "2xx": RecipientRemovedEvent,
+  },
 } satisfies FastifySchema;

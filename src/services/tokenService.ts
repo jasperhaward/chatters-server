@@ -23,7 +23,7 @@ export async function generateToken(db: Kysely<Database>, userId: string) {
 }
 
 /** Removes authentication scheme. */
-export function parseTokenScheme(token: string) {
+export function removeTokenScheme(token: string) {
   return token.substring("Bearer ".length);
 }
 
