@@ -15,4 +15,4 @@ RUN npm run build
 RUN rm -r src
 RUN npm prune --omit=dev
 
-ENTRYPOINT [ "entrypoint.sh" ]
+ENTRYPOINT [ "sh", "entrypoint.sh" ]
