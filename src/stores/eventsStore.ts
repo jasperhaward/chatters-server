@@ -83,7 +83,7 @@ export async function findEventsByConversationId(
     .select("ru.username as recipient_username")
     .selectAll("e")
     .where("e.conversation_id", "=", conversationId)
-    .orderBy("e.created_at", "desc")
+    .orderBy("e.id", "desc")
     .execute();
 
   return rows.map(toConversationEventSchema);
