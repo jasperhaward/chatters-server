@@ -32,12 +32,11 @@ export const CreateConversationSchema = {
   },
 } satisfies FastifySchema;
 
-export const UpdateConversationSchema = {
+export const UpdateTitleSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
   }),
   body: Type.Object({
-    // for now the only updateable property is the title so we can mark it as required
     title: Type.Union([
       Type.String({
         minLength: 1,
@@ -87,7 +86,7 @@ export const CreateRecipientSchema = {
   },
 } satisfies FastifySchema;
 
-export const DeleteRecipientSchema = {
+export const RemoveRecipientSchema = {
   params: Type.Object({
     conversationId: Type.String({ format: "uuid" }),
     recipientId: Type.String({ format: "uuid" }),

@@ -28,11 +28,11 @@ import {
 import {
   GetConversationsSchema,
   CreateConversationSchema,
-  UpdateConversationSchema,
   GetEventsSchema,
+  UpdateTitleSchema,
   CreateMessageSchema,
   CreateRecipientSchema,
-  DeleteRecipientSchema,
+  RemoveRecipientSchema,
 } from "./conversationsSchema";
 
 export interface ConversationsControllerOptions extends ControllerOptions {
@@ -166,7 +166,7 @@ export default async function conversationsController(
   );
 
   fastify.get(
-    "/:conversationId",
+    "/:conversationId/events",
     { schema: GetEventsSchema, onRequest: authentication(db) },
     async (request) => {
       const { userId } = request.token;
@@ -196,8 +196,8 @@ export default async function conversationsController(
   );
 
   fastify.patch(
-    "/:conversationId",
-    { schema: UpdateConversationSchema, onRequest: authentication(db) },
+    "/:conversationId/title",
+    { schema: UpdateTitleSchema, onRequest: authentication(db) },
     async (request) => {
       const { userId } = request.token;
       const { conversationId } = request.params;
@@ -356,7 +356,7 @@ export default async function conversationsController(
 
   fastify.delete(
     "/:conversationId/recipients/:recipientId",
-    { schema: DeleteRecipientSchema, onRequest: authentication(db) },
+    { schema: RemoveRecipientSchema, onRequest: authentication(db) },
     async (request) => {
       const { userId } = request.token;
       const { conversationId, recipientId } = request.params;
