@@ -64,7 +64,7 @@ interface CreationEsView extends ConversationEventCommon {
 }
 
 interface TitleEsView extends ConversationEventCommon {
-  event_type: ConversationEventType.ConversationTitleUpdated;
+  event_type: ConversationEventType.TitleUpdated;
   title: string;
 }
 

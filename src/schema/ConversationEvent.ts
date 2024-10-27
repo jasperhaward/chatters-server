@@ -4,7 +4,7 @@ import { TConversation } from "./Conversation";
 
 export enum ConversationEventType {
   ConversationCreated = "ConversationCreated",
-  ConversationTitleUpdated = "ConversationTitleUpdated",
+  TitleUpdated = "TitleUpdated",
   MessageCreated = "MessageCreated",
   RecipientCreated = "RecipientCreated",
   RecipientRemoved = "RecipientRemoved",
@@ -33,7 +33,7 @@ export type TConversationCreatedEvent = Static<typeof ConversationCreatedEvent>;
 export const TitleUpdatedEvent = Type.Intersect([
   ConversationEventCommon,
   Type.Object({
-    type: Type.Literal(ConversationEventType.ConversationTitleUpdated),
+    type: Type.Literal(ConversationEventType.TitleUpdated),
     title: Type.String(),
   }),
 ]);

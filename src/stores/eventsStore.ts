@@ -36,10 +36,10 @@ export function toConversationEventSchema(
         ...common,
         type: ConversationEventType.ConversationCreated,
       };
-    case ConversationEventType.ConversationTitleUpdated:
+    case ConversationEventType.TitleUpdated:
       return {
         ...common,
-        type: ConversationEventType.ConversationTitleUpdated,
+        type: ConversationEventType.TitleUpdated,
         title: row.title!,
       };
     case ConversationEventType.MessageCreated:
@@ -96,7 +96,7 @@ type InsertConversationEventParams =
     }
   | {
       conversationId: string;
-      type: ConversationEventType.ConversationTitleUpdated;
+      type: ConversationEventType.TitleUpdated;
       createdBy: string;
       title: string | null;
     }

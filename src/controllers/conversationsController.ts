@@ -124,7 +124,7 @@ export default async function conversationsController(
         if (title) {
           titleUpdated = await insertEvent(trx, {
             conversationId,
-            type: ConversationEventType.ConversationTitleUpdated,
+            type: ConversationEventType.TitleUpdated,
             createdBy: userId,
             title,
           });
@@ -224,7 +224,7 @@ export default async function conversationsController(
 
       const titleUpdatedEvent = await insertEvent(db, {
         conversationId,
-        type: ConversationEventType.ConversationTitleUpdated,
+        type: ConversationEventType.TitleUpdated,
         createdBy: userId,
         title,
       });
