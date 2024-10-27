@@ -38,6 +38,20 @@ CREATE VIEW conversation_created_es AS
     FROM conversation_event AS e
     INNER JOIN user_account AS u ON u.user_id = e.created_by
     WHERE event_type = 'ConversationCreated'
+
+CREATE VIEW conversation_title_es AS 
+    SELECT DISTINCT ON (e.conversation_id) 
+        e.id,
+        e.conversation_id,
+        e.event_type,
+        e.created_at,
+        e.created_by,
+        u.username AS created_by_name,
+        e.title
+    FROM conversation_event e
+    JOIN user_account u ON u.user_id = e.created_by
+    WHERE e.event_type = 'TitleUpdated'
+    ORDER BY e.conversation_id, e.created_at DESC;
     
 CREATE VIEW conversation_recipient_es AS 
     WITH recipients AS (
