@@ -161,7 +161,15 @@ export default async function conversationsController(
 
       dispatchEvent(sanitisedRecipientIds, addedToConversationEvent);
 
-      return events;
+      if (events.titleUpdated) {
+        return [
+          events.conversationCreated,
+          events.titleUpdated,
+          ...events.recipientsCreated,
+        ];
+      }
+
+      return [events.conversationCreated, ...events.recipientsCreated];
     }
   );
 
