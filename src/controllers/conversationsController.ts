@@ -1,66 +1,65 @@
-import { FastifyTypebox, ControllerOptions, ServerEvent } from "../types";
+import { randomUUID } from "crypto";
+import { FastifyTypebox, ControllerOptions } from "../types";
 import authentication from "../hooks/authenticationHook";
 
-import { TConversationWithRecipientsAndLatestMessage } from "../schema";
+import {
+  ConversationEventType,
+  TConversation,
+  TUiConversationEvent,
+  TAddedToConversationEvent,
+  TRecipient,
+} from "../schema";
 import { BadRequestError } from "../errors";
 import { removeDuplicates } from "../utils";
 import {
-  findConversationsByUserId,
-  insertConversation,
-  findRecipientsByConversationId,
   isUserInRecipients,
-  insertRecipients,
-  findMessagesByConversationId,
-  insertMessage,
-  deleteRecipient,
-  isExistingConversation,
   findUsersByUserIds,
-  InsertConversationParams,
-  InsertRecipientsParams,
-  InsertMessageParams,
   findUserByUserId,
-  DeleteRecipientParams,
+  isExistingConversation,
   isExistingConversationWithRecipientIds,
-  updateConversation,
-  UpdateConversationParams,
-  findConversationById,
+  findConversationsByUserId,
+  findConversationByConversationId,
+  findEventsByConversationId,
   sortRecipientsByUsername,
+  findRecipientsByConversationId,
+  insertEvent,
+  insertEvents,
 } from "../stores";
 import {
   GetConversationsSchema,
   CreateConversationSchema,
-  UpdateConversationSchema,
-  GetConversationMessagesSchema,
-  CreateConversationMessageSchema,
-  CreateConversationRecipientSchema,
-  DeleteConversationRecipientSchema,
+  GetEventsSchema,
+  UpdateTitleSchema,
+  CreateMessageSchema,
+  CreateRecipientSchema,
+  RemoveRecipientSchema,
 } from "./conversationsSchema";
 
 export interface ConversationsControllerOptions extends ControllerOptions {
-  dispatchServerEvent: (recipientIds: string[], event: ServerEvent) => void;
+  dispatchEvent: (
+    recipients: string[] | TRecipient[],
+    event: TUiConversationEvent
+  ) => void;
 }
 
 export default async function conversationsController(
   fastify: FastifyTypebox,
   options: ConversationsControllerOptions
 ) {
-  const { db, dispatchServerEvent } = options;
+  const { db, dispatchEvent } = options;
 
   fastify.get(
     "/",
-    {
-      schema: GetConversationsSchema,
-      onRequest: authentication(db),
-    },
+    { schema: GetConversationsSchema, onRequest: authentication(db) },
     async (request) => {
       const { userId } = request.token;
 
-      const conversations: TConversationWithRecipientsAndLatestMessage[] = [];
+      const conversations: TConversation[] = [];
 
       for (const conversation of await findConversationsByUserId(db, userId)) {
         const recipients = await findRecipientsByConversationId(
           db,
-          conversation.id
+          conversation.conversationId
         );
 
         conversations.push({ ...conversation, recipients });
@@ -72,19 +71,16 @@ export default async function conversationsController(
 
   fastify.post(
     "/",
-    {
-      schema: CreateConversationSchema,
-      onRequest: authentication(db),
-    },
-    async (request, reply) => {
+    { schema: CreateConversationSchema, onRequest: authentication(db) },
+    async (request) => {
       const { userId } = request.token;
       const { recipientIds, title } = request.body;
 
-      const sanitisedRecipientIds = recipientIds
-        .filter((recipientId) => recipientId !== userId)
-        .filter(removeDuplicates);
+      const sanitisedRecipientIds = [userId, ...recipientIds].filter(
+        removeDuplicates
+      );
 
-      if (sanitisedRecipientIds.length < 1) {
+      if (sanitisedRecipientIds.length < 2) {
         throw new BadRequestError(
           "MinimumRecipientsRequired",
           "Conversation must have at least 2 unique recipients."
@@ -96,64 +92,120 @@ export default async function conversationsController(
       if (users.length !== sanitisedRecipientIds.length) {
         throw new BadRequestError(
           "UserNotFound",
-          `User from '${sanitisedRecipientIds.join(",")}' not found.`
+          `User from '${sanitisedRecipientIds.join("','")}' not found.`
         );
       }
 
       // should not be able to create duplicate direct conversations with only 2 recipients
       if (
-        sanitisedRecipientIds.length === 1 &&
-        (await isExistingConversationWithRecipientIds(db, [
-          userId,
-          ...sanitisedRecipientIds,
-        ]))
+        sanitisedRecipientIds.length === 2 &&
+        (await isExistingConversationWithRecipientIds(
+          db,
+          sanitisedRecipientIds
+        ))
       ) {
         throw new BadRequestError(
           "ExistingDirectConversation",
-          `Direct conversation between user and '${sanitisedRecipientIds[0]}' already exists.`
+          `Direct conversation between user and '${sanitisedRecipientIds[1]}' already exists.`
         );
       }
 
-      const conversation = await db
-        .transaction()
-        .execute<TConversationWithRecipientsAndLatestMessage>(async (trx) => {
-          const conversationParams: InsertConversationParams = {
-            createdBy: userId,
-            title,
-          };
+      const events = await db.transaction().execute(async (trx) => {
+        const conversationId = randomUUID();
 
-          const conversation = await insertConversation(
-            trx,
-            conversationParams
-          );
-
-          const recipientsParams: InsertRecipientsParams = {
-            conversationId: conversation.id,
-            recipientIds: [userId, ...sanitisedRecipientIds],
-          };
-
-          const recipients = await insertRecipients(trx, recipientsParams);
-
-          return { ...conversation, recipients, latestMessage: null };
+        const conversationCreated = await insertEvent(trx, {
+          conversationId,
+          type: ConversationEventType.ConversationCreated,
+          createdBy: userId,
         });
 
-      reply.code(201);
+        let titleUpdated;
 
-      dispatchServerEvent(sanitisedRecipientIds, {
-        type: "conversation/created",
-        payload: conversation,
+        if (title) {
+          titleUpdated = await insertEvent(trx, {
+            conversationId,
+            type: ConversationEventType.TitleUpdated,
+            createdBy: userId,
+            title,
+          });
+        }
+
+        const recipientsCreated = await insertEvents(
+          trx,
+          sanitisedRecipientIds.map((recipientId) => ({
+            conversationId,
+            type: ConversationEventType.RecipientCreated,
+            createdBy: userId,
+            recipientId,
+          }))
+        );
+
+        return { conversationCreated, titleUpdated, recipientsCreated };
       });
 
-      return conversation;
+      const recipients = events.recipientsCreated.map<TRecipient>((event) => ({
+        ...event.recipient,
+        createdAt: event.createdAt,
+        createdBy: event.createdBy,
+      }));
+
+      const addedToConversationEvent: TAddedToConversationEvent = {
+        type: ConversationEventType.AddedToConversation,
+        conversationId: events.conversationCreated.conversationId,
+        createdAt: events.conversationCreated.createdAt,
+        createdBy: events.conversationCreated.createdBy,
+        title: events.titleUpdated?.title || null,
+        recipients,
+        latestEvent: events.recipientsCreated.at(-1)!,
+      };
+
+      dispatchEvent(sanitisedRecipientIds, addedToConversationEvent);
+
+      if (events.titleUpdated) {
+        return [
+          events.conversationCreated,
+          events.titleUpdated,
+          ...events.recipientsCreated,
+        ];
+      }
+
+      return [events.conversationCreated, ...events.recipientsCreated];
+    }
+  );
+
+  fastify.get(
+    "/:conversationId/events",
+    { schema: GetEventsSchema, onRequest: authentication(db) },
+    async (request) => {
+      const { userId } = request.token;
+      const { conversationId } = request.params;
+
+      if (!(await isExistingConversation(db, conversationId))) {
+        throw new BadRequestError(
+          "ConversationNotFound",
+          `Conversation with id '${conversationId}' not found.`
+        );
+      }
+
+      const recipients = await findRecipientsByConversationId(
+        db,
+        conversationId
+      );
+
+      if (!isUserInRecipients(recipients, userId)) {
+        throw new BadRequestError(
+          "UserNotConversationRecipient",
+          "User must be recipient of conversation."
+        );
+      }
+
+      return await findEventsByConversationId(db, conversationId);
     }
   );
 
   fastify.patch(
-    "/:conversationId",
-    {
-      schema: UpdateConversationSchema,
-      onRequest: authentication(db),
-    },
+    "/:conversationId/title",
+    { schema: UpdateTitleSchema, onRequest: authentication(db) },
     async (request) => {
       const { userId } = request.token;
       const { conversationId } = request.params;
@@ -178,66 +230,23 @@ export default async function conversationsController(
         );
       }
 
-      const params: UpdateConversationParams = {
+      const titleUpdatedEvent = await insertEvent(db, {
         conversationId,
+        type: ConversationEventType.TitleUpdated,
+        createdBy: userId,
         title,
-      };
-
-      const conversation = await updateConversation(db, params);
-
-      const eventRecipientIds = recipients
-        .map((recipient) => recipient.id)
-        .filter((recipientId) => recipientId !== userId);
-
-      dispatchServerEvent(eventRecipientIds, {
-        type: "conversation/updated",
-        payload: conversation,
       });
 
-      return conversation;
-    }
-  );
+      dispatchEvent(recipients, titleUpdatedEvent);
 
-  fastify.get(
-    "/:conversationId/messages",
-    {
-      schema: GetConversationMessagesSchema,
-      onRequest: authentication(db),
-    },
-    async (request) => {
-      const { userId } = request.token;
-      const { conversationId } = request.params;
-
-      if (!(await isExistingConversation(db, conversationId))) {
-        throw new BadRequestError(
-          "ConversationNotFound",
-          `Conversation with id '${conversationId}' not found.`
-        );
-      }
-
-      const recipients = await findRecipientsByConversationId(
-        db,
-        conversationId
-      );
-
-      if (!isUserInRecipients(recipients, userId)) {
-        throw new BadRequestError(
-          "UserNotConversationRecipient",
-          "User must be recipient of conversation."
-        );
-      }
-
-      return await findMessagesByConversationId(db, conversationId);
+      return titleUpdatedEvent;
     }
   );
 
   fastify.post(
     "/:conversationId/messages",
-    {
-      schema: CreateConversationMessageSchema,
-      onRequest: authentication(db),
-    },
-    async (request, reply) => {
+    { schema: CreateMessageSchema, onRequest: authentication(db) },
+    async (request) => {
       const { userId } = request.token;
       const { conversationId } = request.params;
       const { content } = request.body;
@@ -261,41 +270,33 @@ export default async function conversationsController(
         );
       }
 
-      reply.code(201);
-
-      const params: InsertMessageParams = {
+      const messageCreatedEvent = await insertEvent(db, {
         conversationId,
+        type: ConversationEventType.MessageCreated,
         createdBy: userId,
-        content: content.trim(),
-      };
-
-      const message = await insertMessage(db, params);
-
-      const eventRecipientIds = recipients
-        .map((recipient) => recipient.id)
-        .filter((recipientId) => recipientId !== userId);
-
-      dispatchServerEvent(eventRecipientIds, {
-        type: "message/created",
-        payload: message,
+        message: content.trim(),
       });
 
-      return message;
+      dispatchEvent(recipients, messageCreatedEvent);
+
+      return messageCreatedEvent;
     }
   );
 
   fastify.post(
     "/:conversationId/recipients",
-    {
-      schema: CreateConversationRecipientSchema,
-      onRequest: authentication(db),
-    },
-    async (request, reply) => {
+    { schema: CreateRecipientSchema, onRequest: authentication(db) },
+    async (request) => {
       const { userId } = request.token;
       const { conversationId } = request.params;
       const { recipientId } = request.body;
 
-      if (!(await isExistingConversation(db, conversationId))) {
+      const conversation = await findConversationByConversationId(
+        db,
+        conversationId
+      );
+
+      if (!conversation) {
         throw new BadRequestError(
           "ConversationNotFound",
           `Conversation with id '${conversationId}' not found.`
@@ -314,13 +315,6 @@ export default async function conversationsController(
         );
       }
 
-      if (recipients.length === 2) {
-        throw new BadRequestError(
-          "CannotCreateGroupConversation",
-          "Cannot create a group conversation from a direct conversation."
-        );
-      }
-
       if (isUserInRecipients(recipients, recipientId)) {
         throw new BadRequestError(
           "UserIsConversationRecipient",
@@ -335,50 +329,43 @@ export default async function conversationsController(
         );
       }
 
-      const params: InsertRecipientsParams = {
+      const recipientCreatedEvent = await insertEvent(db, {
         conversationId,
-        recipientIds: [recipientId],
-      };
-
-      const [recipient] = await insertRecipients(db, params);
-
-      reply.code(201);
-
-      const eventRecipientIds = recipients
-        .map((recipient) => recipient.id)
-        .filter((recipientId) => recipientId !== userId);
-
-      dispatchServerEvent(eventRecipientIds, {
-        type: "recipient/added",
-        payload: recipient,
+        type: ConversationEventType.RecipientCreated,
+        createdBy: userId,
+        recipientId,
       });
 
-      const conversation = await findConversationById(db, conversationId);
+      dispatchEvent(recipients, recipientCreatedEvent);
 
-      const updatedRecipients = [...recipients, recipient].sort(
+      const addedRecipient: TRecipient = {
+        ...recipientCreatedEvent.recipient,
+        createdAt: recipientCreatedEvent.createdAt,
+        createdBy: recipientCreatedEvent.createdBy,
+      };
+
+      const updatedRecipients = [...recipients, addedRecipient].sort(
         sortRecipientsByUsername
       );
 
-      // send conversation created event to the new recipient
-      dispatchServerEvent([recipientId], {
-        type: "conversation/created",
-        payload: {
-          ...conversation,
-          recipients: updatedRecipients,
-        },
-      });
+      // when a recipient is added to a conversation, send the new recipient full conversation details
+      const addedToConversationEvent: TAddedToConversationEvent = {
+        type: ConversationEventType.AddedToConversation,
+        ...conversation,
+        recipients: updatedRecipients,
+        latestEvent: recipientCreatedEvent,
+      };
 
-      return recipient;
+      dispatchEvent([addedRecipient.id], addedToConversationEvent);
+
+      return recipientCreatedEvent;
     }
   );
 
   fastify.delete(
     "/:conversationId/recipients/:recipientId",
-    {
-      schema: DeleteConversationRecipientSchema,
-      onRequest: authentication(db),
-    },
-    async (request, reply) => {
+    { schema: RemoveRecipientSchema, onRequest: authentication(db) },
+    async (request) => {
       const { userId } = request.token;
       const { conversationId, recipientId } = request.params;
 
@@ -397,52 +384,34 @@ export default async function conversationsController(
       if (!isUserInRecipients(recipients, userId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          "User must be recipient of conversation."
-        );
-      }
-
-      if (recipients.length === 2) {
-        throw new BadRequestError(
-          "MinimumRecipientsRequired",
-          "Cannot remove recipients from a direct conversation."
-        );
-      }
-
-      if (recipients.length === 3) {
-        throw new BadRequestError(
-          "CannotCreateDirectConversation",
-          "Cannot create a direct conversation from a group conversation."
+          "User is not a conversation recipient."
         );
       }
 
       if (!isUserInRecipients(recipients, recipientId)) {
         throw new BadRequestError(
           "UserNotConversationRecipient",
-          `User with id '${recipientId}' must be recipient of conversation.`
+          `User '${recipientId}' is not a conversation recipient.`
         );
       }
 
-      const params: DeleteRecipientParams = {
+      if (recipients.length === 2) {
+        throw new BadRequestError(
+          "MinimumRecipientsRequired",
+          "Conversation cannot have less than 2 recipients."
+        );
+      }
+
+      const recipientRemovedEvent = await insertEvent(db, {
         conversationId,
+        type: ConversationEventType.RecipientRemoved,
+        createdBy: userId,
         recipientId,
-      };
-
-      await deleteRecipient(db, params);
-
-      const eventRecipientIds = recipients
-        .map((recipient) => recipient.id)
-        .filter((recipientId) => recipientId !== userId);
-
-      const recipient = recipients.find(
-        (recipient) => recipient.id === recipientId
-      )!;
-
-      dispatchServerEvent(eventRecipientIds, {
-        type: "recipient/removed",
-        payload: recipient,
       });
 
-      reply.code(204);
+      dispatchEvent(recipients, recipientRemovedEvent);
+
+      return recipientRemovedEvent;
     }
   );
 }

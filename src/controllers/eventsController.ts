@@ -1,20 +1,11 @@
-import {
-  FastifyTypebox,
-  ClientConnection,
-  ErrorEvent,
-  ControllerOptions,
-} from "../types";
+import { FastifyTypebox, ClientConnection, ControllerOptions } from "../types";
+import { InternalServerError, UnauthorisedError } from "../errors";
 import {
   ExpiredAuthTokenError,
   InvalidAuthTokenError,
   validateToken,
-  parseTokenScheme,
+  removeTokenScheme,
 } from "../services";
-import {
-  ControllerError,
-  InternalServerError,
-  UnauthorisedError,
-} from "../errors";
 
 export interface EventsControllerOptions extends ControllerOptions {
   clientConnections: ClientConnection[];
@@ -31,12 +22,11 @@ export default async function eventsController(
 
     socket.on("message", async (data) => {
       try {
-        const token = parseTokenScheme(`${data}`);
-
-        const { userId } = await validateToken(db, token);
+        const rawToken = removeTokenScheme(`${data}`);
+        const token = await validateToken(db, rawToken);
 
         const clientConnection: ClientConnection = {
-          userId,
+          userId: token.userId,
           socket,
         };
 
@@ -55,15 +45,10 @@ export default async function eventsController(
           transformedError = new InternalServerError();
         }
 
-        const event: ErrorEvent = {
-          type: "error",
-          payload: {
-            code:
-              transformedError instanceof ControllerError
-                ? transformedError.code
-                : transformedError.name,
-            message: transformedError.message,
-          },
+        const event = {
+          type: "Error",
+          code: transformedError.name,
+          message: transformedError.message,
         };
 
         socket.send(JSON.stringify(event));

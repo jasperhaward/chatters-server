@@ -1,25 +1,16 @@
 import { Type, Static } from "@sinclair/typebox";
 import { User } from "./User";
 import { Recipient } from "./Recipient";
-import { Message } from "./Message";
+import { ConversationEvent } from "./ConversationEvent";
 
 export const Conversation = Type.Object({
-  id: Type.String({ format: "uuid" }),
+  conversationId: Type.String({ format: "uuid" }),
   createdAt: Type.String({ format: "date-time" }),
   createdBy: User,
   title: Type.Union([Type.String(), Type.Null()]),
+  recipients: Type.Array(Recipient),
+  latestEvent: ConversationEvent,
 });
 
 export type TConversation = Static<typeof Conversation>;
-
-export const ConversationWithRecipientsAndLatestMessage = Type.Intersect([
-  Conversation,
-  Type.Object({
-    recipients: Type.Array(Recipient),
-    latestMessage: Type.Union([Message, Type.Null()]),
-  }),
-]);
-
-export type TConversationWithRecipientsAndLatestMessage = Static<
-  typeof ConversationWithRecipientsAndLatestMessage
->;
+export type TConversationWithoutRecipients = Omit<TConversation, "recipients">;

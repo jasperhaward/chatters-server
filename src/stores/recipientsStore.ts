@@ -1,35 +1,18 @@
 import { Kysely, sql } from "kysely";
 
-import { Database, InsertableRecipientRow, RecipientRow } from "../database";
+import { Database, RecipientRow } from "../database";
 import { TRecipient } from "../schema";
 
-interface RecipientRowWithUsername extends RecipientRow {
-  username: string;
-}
-
-function toRecipientSchema(row: RecipientRowWithUsername): TRecipient {
+function toRecipientSchema(row: RecipientRow): TRecipient {
   return {
-    id: row.user_id,
-    conversationId: row.conversation_id,
-    username: row.username,
+    id: row.recipient_id,
+    username: row.recipient_username,
     createdAt: row.created_at,
+    createdBy: {
+      id: row.created_by,
+      username: row.created_by_username,
+    },
   };
-}
-
-export async function findRecipientsByConversationId(
-  db: Kysely<Database>,
-  conversationId: string
-): Promise<TRecipient[]> {
-  const rows = await db
-    .selectFrom("conversation_recipient as r")
-    .innerJoin("user_account as u", "u.user_id", "r.user_id")
-    .selectAll("r")
-    .select("u.username")
-    .where("r.conversation_id", "=", conversationId)
-    .orderBy("u.username")
-    .execute();
-
-  return rows.map(toRecipientSchema);
 }
 
 export async function isExistingConversationWithRecipientIds(
@@ -41,68 +24,34 @@ export async function isExistingConversationWithRecipientIds(
   const joinedRecipientIds = sql.join(recipientIds);
 
   return !!(await db
-    .selectFrom("conversation_recipient")
+    .selectFrom("conversation_recipient_es")
     .select("conversation_id")
     .groupBy("conversation_id")
-    .having(count("user_id"), "=", recipientIds.length)
+    .having(count("recipient_id"), "=", recipientIds.length)
     .having(
-      sql`sum(case when user_id in (${joinedRecipientIds}) then 0 else 1 end)`,
+      sql`sum(case when recipient_id in (${joinedRecipientIds}) then 0 else 1 end)`,
       "=",
       0
     )
     .executeTakeFirst());
 }
 
-export function isUserInRecipients(recipients: TRecipient[], userId: string) {
-  return !!recipients.find((recipient) => recipient.id === userId);
-}
-
-export interface DeleteRecipientParams {
-  conversationId: string;
-  recipientId: string;
-}
-
-export async function deleteRecipient(
+export async function findRecipientsByConversationId(
   db: Kysely<Database>,
-  params: DeleteRecipientParams
-) {
-  const { conversationId, recipientId } = params;
-
-  await db
-    .deleteFrom("conversation_recipient")
-    .where("conversation_id", "=", conversationId)
-    .where("user_id", "=", recipientId)
-    .execute();
-}
-
-export interface InsertRecipientsParams {
-  conversationId: string;
-  recipientIds: string[];
-}
-
-export async function insertRecipients(
-  db: Kysely<Database>,
-  params: InsertRecipientsParams
+  conversationId: string
 ): Promise<TRecipient[]> {
-  const { conversationId, recipientIds } = params;
-
-  const values = recipientIds.map<InsertableRecipientRow>((recipientId) => ({
-    conversation_id: conversationId,
-    user_id: recipientId,
-  }));
-
   const rows = await db
-    .with("r", (db) =>
-      db.insertInto("conversation_recipient").values(values).returningAll()
-    )
-    .selectFrom("r")
-    .innerJoin("user_account as u", "u.user_id", "r.user_id")
-    .selectAll("r")
-    .select("u.username")
-    .orderBy("u.username")
+    .selectFrom("conversation_recipient_es")
+    .selectAll()
+    .where("conversation_id", "=", conversationId)
+    .orderBy("recipient_username")
     .execute();
 
   return rows.map(toRecipientSchema);
+}
+
+export function isUserInRecipients(recipients: TRecipient[], userId: string) {
+  return recipients.some((recipient) => recipient.id === userId);
 }
 
 export function sortRecipientsByUsername(a: TRecipient, b: TRecipient) {

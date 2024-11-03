@@ -1,11 +1,37 @@
+import { SwaggerOptions } from "@fastify/swagger";
 import { PoolConfig } from "pg";
+import packageJson from "../package.json";
 import { parseEnv } from "./utils";
 
+const environment = parseEnv("ENVIRONMENT");
+
+const swaggerConfig: SwaggerOptions = {
+  openapi: {
+    info: {
+      title: `Chatters API - ${environment}`,
+      version: packageJson.version,
+    },
+    components: {
+      securitySchemes: {
+        token: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [{ token: [] }],
+  },
+};
+
 export interface Config {
+  name: string;
+  version: string;
   environment: string;
   port: number;
   host: string;
   origins: RegExp[];
+  swagger: SwaggerOptions;
   database: PoolConfig;
   authTokenSecret: string;
   authTokenExpiryDuration: number;
@@ -21,22 +47,25 @@ export interface Config {
 }
 
 const config: Readonly<Config> = {
-  environment: parseEnv("ENVIRONMENT", "string"),
-  host: parseEnv("HOST", "string"),
-  port: parseEnv("PORT", "number"),
+  name: packageJson.name,
+  version: packageJson.version,
+  environment,
+  host: parseEnv("HOST"),
+  port: parseInt(parseEnv("PORT")),
   origins: [
     /^http:\/\/localhost:[0-9]{4}$/,
     /^http:\/\/server(.local)?:[0-9]{4}$/,
     /^https:\/\/(dev-)?chatters.jasperh.uk$/,
   ],
+  swagger: swaggerConfig,
   database: {
-    host: parseEnv("POSTGRES_HOST", "string"),
-    port: parseEnv("POSTGRES_PORT", "number"),
-    user: parseEnv("POSTGRES_USER", "string"),
-    password: parseEnv("POSTGRES_PASSWORD", "string"),
-    database: parseEnv("POSTGRES_DATABASE", "string"),
+    host: parseEnv("POSTGRES_HOST"),
+    port: parseInt(parseEnv("POSTGRES_PORT")),
+    user: parseEnv("POSTGRES_USER"),
+    password: parseEnv("POSTGRES_PASSWORD"),
+    database: parseEnv("POSTGRES_DATABASE"),
   },
-  authTokenSecret: parseEnv("AUTH_TOKEN_SECRET", "string"),
+  authTokenSecret: parseEnv("AUTH_TOKEN_SECRET"),
   authTokenExpiryDuration: 3000,
   minUsernameLength: 5, // *
   maxUsernameLength: 25, // *
