@@ -82,10 +82,18 @@ export const ConversationEvent = Type.Union([
 
 export type TConversationEvent = Static<typeof ConversationEvent>;
 
+/**
+ * Programmatically created event used when a user's client/UI needs
+ * additional information about a conversation when being added to it.
+ */
 export interface TAddedToConversationEvent extends TConversation {
   type: ConversationEventType.AddedToConversation;
 }
 
-export type TUiConversationEvent =
+/**
+ * A superset of `TConversationEvent` events that includes
+ * programmatically created events for WebSocket consumption in the UI.
+ */
+export type TWebSocketConversationEvent =
   | TConversationEvent
   | TAddedToConversationEvent;

@@ -5,7 +5,7 @@ import authentication from "../hooks/authenticationHook";
 import {
   ConversationEventType,
   TConversation,
-  TUiConversationEvent,
+  TWebSocketConversationEvent,
   TAddedToConversationEvent,
   TRecipient,
 } from "../schema";
@@ -38,7 +38,7 @@ import {
 export interface ConversationsControllerOptions extends ControllerOptions {
   dispatchEvent: (
     recipients: string[] | TRecipient[],
-    event: TUiConversationEvent
+    event: TWebSocketConversationEvent
   ) => void;
 }
 

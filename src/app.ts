@@ -8,7 +8,7 @@ import swaggerUi from "@fastify/swagger-ui";
 
 import { Config } from "./config";
 import { Database } from "./database";
-import { TRecipient, TUiConversationEvent } from "./schema";
+import { TRecipient, TWebSocketConversationEvent } from "./schema";
 import { FastifyTypebox, ClientConnection } from "./types";
 
 import authController from "./controllers/authController";
@@ -99,7 +99,7 @@ export default class App {
 
   dispatchEvent = (
     recipients: string[] | TRecipient[],
-    event: TUiConversationEvent
+    event: TWebSocketConversationEvent
   ) => {
     // prettier-ignore
     const recipientIds = recipients.map((recipient) =>
