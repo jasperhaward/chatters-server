@@ -6,6 +6,7 @@
     "target": "ESNext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmitOnError": true,

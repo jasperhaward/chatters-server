@@ -1,3 +1,6 @@
+import { differenceInSeconds } from "date-fns";
+import { TConversationEventCommon } from "./schema";
+
 export function parseEnv(name: string): string {
   const value = process.env[name];
 
@@ -14,4 +17,15 @@ export function removeDuplicates(
   array: string[]
 ) {
   return array.indexOf(value) === index;
+}
+
+export function areEventsWithinOneMinute(
+  a: TConversationEventCommon,
+  b: TConversationEventCommon
+) {
+  return (
+    Math.abs(
+      differenceInSeconds(new Date(a.createdAt), new Date(b.createdAt))
+    ) <= 60
+  );
 }

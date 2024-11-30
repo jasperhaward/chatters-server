@@ -7,6 +7,7 @@ export enum ConversationEventType {
   TitleUpdated = "TitleUpdated",
   MessageCreated = "MessageCreated",
   RecipientCreated = "RecipientCreated",
+  RecipientsCreatedAggregate = "RecipientsCreatedAggregate",
   RecipientRemoved = "RecipientRemoved",
   AddedToConversation = "AddedToConversation",
 }
@@ -81,6 +82,27 @@ export const ConversationEvent = Type.Union([
 ]);
 
 export type TConversationEvent = Static<typeof ConversationEvent>;
+
+export const RecipientsCreatedAggregateEvent = Type.Intersect([
+  ConversationEventCommon,
+  Type.Object({
+    type: Type.Literal(ConversationEventType.RecipientsCreatedAggregate),
+    recipients: Type.Array(User),
+  }),
+]);
+
+export type TRecipientsCreatedAggregateEvent = Static<
+  typeof RecipientsCreatedAggregateEvent
+>;
+
+export const ConversationEventWithAggregates = Type.Union([
+  RecipientsCreatedAggregateEvent,
+  ConversationEvent,
+]);
+
+export type TConversationEventWithAggregates = Static<
+  typeof ConversationEventWithAggregates
+>;
 
 /**
  * Programmatically created event used when a user's client/UI needs

@@ -26,5 +26,9 @@ export function verifyPassword(
 ) {
   const [salt, passwordHash] = storedPassword.split(":");
 
+  if (!salt || !passwordHash) {
+    throw new Error("Invalid password hash.");
+  }
+
   return passwordHash === generatePasswordHash(passwordAttempt, salt);
 }

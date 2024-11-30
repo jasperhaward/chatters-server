@@ -20,10 +20,11 @@ import {
   findConversationsByUserId,
   findConversationByConversationId,
   findEventsByConversationId,
-  sortRecipientsByUsername,
+  sortUsersByUsername,
   findRecipientsByConversationId,
   insertEvent,
   insertEvents,
+  applyAggregates,
 } from "../stores";
 import {
   GetConversationsSchema,
@@ -199,7 +200,9 @@ export default async function conversationsController(
         );
       }
 
-      return await findEventsByConversationId(db, conversationId);
+      const events = await findEventsByConversationId(db, conversationId);
+
+      return applyAggregates(events);
     }
   );
 
@@ -345,7 +348,7 @@ export default async function conversationsController(
       };
 
       const updatedRecipients = [...recipients, addedRecipient].sort(
-        sortRecipientsByUsername
+        sortUsersByUsername
       );
 
       // when a recipient is added to a conversation, send the new recipient full conversation details

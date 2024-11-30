@@ -54,7 +54,7 @@ export async function findUserByUserId(
     return null;
   }
 
-  return users[0];
+  return users[0]!;
 }
 
 export async function findUserByUsername(
@@ -119,4 +119,12 @@ export async function insertUserPassword(
     .values(values)
     .returningAll()
     .executeTakeFirstOrThrow();
+}
+
+export function sortUsersByUsername(a: TUser, b: TUser) {
+  if (a.username === b.username) {
+    return 0;
+  }
+
+  return a.username < b.username ? -1 : 1;
 }

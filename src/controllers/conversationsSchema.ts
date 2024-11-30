@@ -9,6 +9,7 @@ import {
   MessageCreatedEvent,
   RecipientCreatedEvent,
   RecipientRemovedEvent,
+  ConversationEventWithAggregates,
 } from "../schema";
 
 export const GetConversationsSchema = {
@@ -55,7 +56,7 @@ export const GetEventsSchema = {
     conversationId: Type.String({ format: "uuid" }),
   }),
   response: {
-    "2xx": Type.Array(ConversationEvent),
+    "2xx": Type.Array(ConversationEventWithAggregates),
   },
 } satisfies FastifySchema;
 

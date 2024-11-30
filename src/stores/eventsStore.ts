@@ -9,7 +9,10 @@ import {
   ConversationEventType,
   TConversationEvent,
   TConversationEventCommon,
+  TConversationEventWithAggregates,
 } from "../schema";
+import { areEventsWithinOneMinute } from "../utils";
+import { sortUsersByUsername } from "./userStore";
 
 export interface ConversationEventRowWithJoins extends ConversationEventRow {
   created_by_username: string;
@@ -89,6 +92,47 @@ export async function findEventsByConversationId(
   return rows.map(toConversationEventSchema);
 }
 
+function areEventsAggregatable(
+  a: TConversationEventCommon,
+  b: TConversationEventCommon
+) {
+  return a.createdBy.id === b.createdBy.id && areEventsWithinOneMinute(a, b);
+}
+
+export function applyAggregates(events: TConversationEvent[]) {
+  return events.reduce<TConversationEventWithAggregates[]>(
+    (aggregateEvents, event, index) => {
+      const previousEvent = aggregateEvents[aggregateEvents.length - 1];
+      const nextEvent = events[index + 1];
+
+      if (
+        event.type === ConversationEventType.RecipientCreated &&
+        previousEvent?.type ===
+          ConversationEventType.RecipientsCreatedAggregate &&
+        areEventsAggregatable(event, previousEvent)
+      ) {
+        previousEvent.recipients.push(event.recipient);
+        previousEvent.recipients.sort(sortUsersByUsername);
+      } else if (
+        event.type === ConversationEventType.RecipientCreated &&
+        nextEvent?.type === ConversationEventType.RecipientCreated &&
+        areEventsAggregatable(event, nextEvent)
+      ) {
+        aggregateEvents.push({
+          ...event,
+          type: ConversationEventType.RecipientsCreatedAggregate,
+          recipients: [event.recipient],
+        });
+      } else {
+        aggregateEvents.push(event);
+      }
+
+      return aggregateEvents;
+    },
+    []
+  );
+}
+
 type InsertConversationEventParams =
   | {
       conversationId: string;
@@ -157,5 +201,5 @@ export async function insertEvent<T extends ConversationEventType>(
 ): Promise<FilterByType<TConversationEvent, T>> {
   const events = await insertEvents(db, [event]);
 
-  return events[0];
+  return events[0]!;
 }
